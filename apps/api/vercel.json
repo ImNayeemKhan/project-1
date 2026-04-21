@@ -1,0 +1,10 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "framework": null,
+  "installCommand": "pnpm install --ignore-workspace --no-frozen-lockfile",
+  "buildCommand": "mkdir -p public && touch public/.gitkeep",
+  "outputDirectory": "public",
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/[[...path]]" }
+  ]
+}
