@@ -1,0 +1,24 @@
+{
+  "name": "isp-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Production-ready ISP management platform (billing, MikroTik, RADIUS, customer portal, admin dashboard)",
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "dev": "pnpm -r --parallel dev",
+    "build": "pnpm -r build",
+    "start": "pnpm -r --parallel start",
+    "lint": "pnpm -r lint",
+    "typecheck": "pnpm -r typecheck",
+    "docker:up": "docker compose -f infra/docker-compose.yml up -d --build",
+    "docker:down": "docker compose -f infra/docker-compose.yml down",
+    "docker:logs": "docker compose -f infra/docker-compose.yml logs -f"
+  },
+  "engines": {
+    "node": ">=20.0.0",
+    "pnpm": ">=9.0.0"
+  },
+  "packageManager": "pnpm@9.15.1"
+}
