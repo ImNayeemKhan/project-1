@@ -61,9 +61,10 @@ export const radiusService = {
         reject(err);
       });
 
-      // CoA uses port 3799 by convention; using ACCT port here is a deliberate
-      // fallback — override by setting RADIUS_ACCT_PORT to 3799 in .env.
-      socket.send(packet, 0, packet.length, env.RADIUS_ACCT_PORT, env.RADIUS_HOST);
+      // CoA / Disconnect requests go to RFC 5176's dedicated port (3799 by
+      // default via RADIUS_COA_PORT) — not the auth/acct ports, which would
+      // silently drop these packet types.
+      socket.send(packet, 0, packet.length, env.RADIUS_COA_PORT, env.RADIUS_HOST);
     });
   },
 };

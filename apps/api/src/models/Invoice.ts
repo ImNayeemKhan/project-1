@@ -45,10 +45,24 @@ const InvoiceSchema = new Schema<IInvoice>(
   { timestamps: true }
 );
 
-// Hard guarantee that billing can never create two invoices for the same
-// subscription + period, even if the service-level guard is bypassed by a
-// race condition or a redis-lock fallback. `periodStart` is always midnight
-// UTC so the compound key is stable.
-InvoiceSchema.index({ subscription: 1, periodStart: 1 }, { unique: true });
+// Hard guarantee that billing can never create two non-void invoices for
+// the same subscription + period, even if the service-level guard is
+// bypassed by a race condition or a redis-lock fallback. `periodStart` is
+// always midnight UTC so the compound key is stable.
+//
+// The partial filter excludes `status: 'void'` so an admin voiding an
+// invoice frees that (subscription, periodStart) slot — the next billing
+// run mints a replacement, matching the service-level guard in
+// billing.service.runDailyBilling. Without the partialFilterExpression,
+// Mongo's unique index would still collide against the tombstoned void
+// row and trap the subscription with no invoice forever.
+//
+// Existing production databases: drop the old plain unique index before
+// redeploying (`db.invoices.dropIndex('subscription_1_periodStart_1')`)
+// so Mongoose can build the partial one at boot.
+InvoiceSchema.index(
+  { subscription: 1, periodStart: 1 },
+  { unique: true, partialFilterExpression: { status: { $ne: 'void' } } }
+);
 
 export const Invoice = model<IInvoice>('Invoice', InvoiceSchema);

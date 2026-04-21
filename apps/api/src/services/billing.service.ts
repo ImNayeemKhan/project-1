@@ -56,13 +56,16 @@ export const billingService = {
 
         // Idempotency guard: if we previously created this invoice but the
         // subscription save failed afterwards (or a concurrent run raced us),
-        // reuse it instead of duplicating. Void invoices are considered
-        // "cancelled for this period" and still count as already-invoiced.
-        // A compound unique index on (subscription, periodStart) enforces
-        // this at the database layer as well.
+        // reuse it instead of duplicating. Void invoices are explicitly
+        // excluded — an admin voiding last month's invoice should not cause
+        // the customer to skip billing for that period entirely; the next
+        // billing run should mint a replacement. The partial unique index on
+        // Invoice (subscription, periodStart) WHERE status != 'void'
+        // enforces this at the database layer as well.
         const existing = await Invoice.findOne({
           subscription: sub._id,
           periodStart,
+          status: { $ne: 'void' },
         });
         if (!existing) {
           const invoice = await Invoice.create({
@@ -117,9 +120,14 @@ export const billingService = {
     }
 
     // Suspend subscriptions with unpaid invoices past the grace period.
+    // The `createdAt < today` filter prevents invoices minted earlier in
+    // this same run (server catch-up, or BILLING_GRACE_DAYS=0) from being
+    // immediately suspended with zero notice to the customer — the grace
+    // clock should run for at least one calendar day.
     const overdueInvoices = await Invoice.find({
       status: 'unpaid',
       dueDate: { $lt: today },
+      createdAt: { $lt: today },
     }).select('subscription');
 
     const overdueSubIds = Array.from(

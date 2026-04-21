@@ -39,6 +39,10 @@ const schema = z.object({
   RADIUS_HOST: z.string().default('127.0.0.1'),
   RADIUS_AUTH_PORT: z.coerce.number().default(1812),
   RADIUS_ACCT_PORT: z.coerce.number().default(1813),
+  // CoA / Disconnect-Request port. RFC 5176 specifies 3799; FreeRADIUS
+  // listens here out of the box. Sending to 1812/1813 would hit the
+  // auth/accounting listener, which silently drops CoA packets.
+  RADIUS_COA_PORT: z.coerce.number().default(3799),
   RADIUS_SECRET: z.string().default('testing123'),
 
   BKASH_MODE: z.enum(['mock', 'sandbox', 'live']).default('mock'),
