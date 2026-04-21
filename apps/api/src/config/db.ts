@@ -33,10 +33,27 @@ export async function connectDB(): Promise<void> {
           cache.promise = null;
         });
         return m;
+      })
+      // If the initial connection fails (e.g. Atlas is briefly unreachable
+      // during a cold start), drop the cached rejection so the next call
+      // to connectDB can attempt a fresh connection. Without this, the
+      // rejected promise stays cached forever and every subsequent
+      // request keeps re-throwing the original error until the process
+      // is recycled.
+      .catch((err) => {
+        cache.promise = null;
+        throw err;
       });
   }
 
-  cache.conn = await cache.promise;
+  try {
+    cache.conn = await cache.promise;
+  } catch (err) {
+    // Extra safety: clear on re-throw path too so concurrent callers that
+    // entered before .catch ran don't keep a dead handle.
+    cache.promise = null;
+    throw err;
+  }
 }
 
 export async function disconnectDB(): Promise<void> {
