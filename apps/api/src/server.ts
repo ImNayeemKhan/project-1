@@ -4,6 +4,9 @@ import { logger } from './config/logger';
 import { connectDB, disconnectDB } from './config/db';
 import { initRedis, redis } from './config/redis';
 import { startBillingJob } from './jobs/billing.job';
+import { startDunningJob } from './jobs/dunning.job';
+import { startRouterHealthJob } from './jobs/routerHealth.job';
+import { startTicketSlaJob } from './jobs/ticketSla.job';
 
 async function main() {
   await connectDB();
@@ -15,6 +18,9 @@ async function main() {
   });
 
   startBillingJob();
+  startDunningJob();
+  startRouterHealthJob();
+  startTicketSlaJob();
 
   const shutdown = async (signal: string) => {
     logger.info(`Received ${signal}, shutting down...`);

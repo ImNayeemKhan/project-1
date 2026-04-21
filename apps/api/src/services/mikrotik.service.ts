@@ -144,4 +144,21 @@ export const mikrotikService = {
     }
     return withClient(conn, async (client) => client.write('/ppp/active/print'));
   },
+
+  /**
+   * Cheap health check: attempts a connect + trivial `/system/identity/print`
+   * round-trip with a short timeout. Returns ok + latency if reachable,
+   * or ok=false + error on any failure. Used by the router-health poller.
+   */
+  async ping(router: IRouter): Promise<{ ok: boolean; latencyMs?: number; error?: string }> {
+    const conn = resolveConnection(router);
+    if (!conn) return { ok: false, error: 'No connection (dry-run)' };
+    const started = Date.now();
+    try {
+      await withClient(conn, async (client) => client.write('/system/identity/print'));
+      return { ok: true, latencyMs: Date.now() - started };
+    } catch (err) {
+      return { ok: false, error: (err as Error).message };
+    }
+  },
 };

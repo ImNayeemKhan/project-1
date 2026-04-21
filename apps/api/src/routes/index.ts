@@ -14,6 +14,7 @@ import { adminBiRouter } from './admin.bi.routes';
 import { adminWalletRouter } from './admin.wallet.routes';
 import { adminFtpRouter } from './admin.ftp.routes';
 import { adminAddonsRouter } from './admin.addons.routes';
+import { adminWebhooksRouter } from './admin.webhooks.routes';
 import { customerRouter } from './customer.routes';
 import { customerTicketsRouter } from './customer.tickets.routes';
 import { customerAnnouncementsRouter } from './customer.announcements.routes';
@@ -43,6 +44,7 @@ export function buildApiRouter(limiters: RateLimiters) {
   apiRouter.use('/admin/wallet', adminWalletRouter);
   apiRouter.use('/admin/ftp-servers', adminFtpRouter);
   apiRouter.use('/admin/addons', adminAddonsRouter);
+  apiRouter.use('/admin/webhooks', adminWebhooksRouter);
   apiRouter.use('/customer', customerRouter);
   apiRouter.use('/customer/tickets', customerTicketsRouter);
   apiRouter.use('/customer/announcements', customerAnnouncementsRouter);

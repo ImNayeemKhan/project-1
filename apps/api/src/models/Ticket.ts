@@ -28,6 +28,7 @@ export interface ITicket {
   assignedTo?: Types.ObjectId;
   messages: ITicketMessage[];
   lastActivityAt: Date;
+  slaEscalated?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -68,6 +69,10 @@ const TicketSchema = new Schema<ITicket>(
     assignedTo: { type: Schema.Types.ObjectId, ref: 'User', index: true },
     messages: { type: [MessageSchema], default: [] },
     lastActivityAt: { type: Date, default: () => new Date(), index: true },
+    // Set once by the SLA sweep after the escalate threshold passes; prevents
+    // re-bumping priority on every subsequent sweep. Cleared when a reply
+    // lands or the ticket is reopened with fresh activity.
+    slaEscalated: { type: Boolean, default: false },
   },
   { timestamps: true }
 );

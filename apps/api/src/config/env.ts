@@ -45,6 +45,10 @@ const schema = z.object({
 
   BILLING_CRON: z.string().default('0 2 * * *'),
   BILLING_GRACE_DAYS: z.coerce.number().default(3),
+
+  DUNNING_CRON: z.string().default('30 2 * * *'),
+  ROUTER_HEALTH_CRON: z.string().default('*/5 * * * *'),
+  TICKET_SLA_CRON: z.string().default('15 * * * *'),
 });
 
 const parsed = schema.safeParse(process.env);

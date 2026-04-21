@@ -6,6 +6,7 @@ import { validate } from '../middleware/validate';
 import { requireAuth, requireRole } from '../middleware/auth';
 import { Ticket } from '../models/Ticket';
 import { NotFound } from '../utils/errors';
+import { emitWebhook } from '../services/webhook.service';
 
 export const customerTicketsRouter = Router();
 customerTicketsRouter.use(requireAuth, requireRole('customer'));
@@ -61,6 +62,14 @@ customerTicketsRouter.post(
         },
       ],
     });
+    await emitWebhook('ticket.opened', {
+      ticketId: String(ticket._id),
+      ticketNo: ticket.ticketNo,
+      customerId: String(req.auth!.userId),
+      subject: ticket.subject,
+      category: ticket.category,
+      priority: ticket.priority,
+    }).catch(() => undefined);
     res.status(201).json({ ticket });
   })
 );
@@ -81,6 +90,10 @@ customerTicketsRouter.post(
     });
     ticket.status = 'open';
     ticket.lastActivityAt = new Date();
+    // Fresh customer activity: clear the SLA-escalated flag so the sweep
+    // can re-evaluate on the new timer instead of assuming this ticket was
+    // already escalated.
+    (ticket as any).slaEscalated = false;
     await ticket.save();
     res.json({ ticket });
   })

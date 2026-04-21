@@ -15,6 +15,7 @@ export interface IInvoice {
   status: InvoiceStatus;
   paidAt?: Date;
   paymentRef?: string;
+  remindersSent?: string[];
   createdAt: Date;
   updatedAt: Date;
 }
@@ -37,6 +38,9 @@ const InvoiceSchema = new Schema<IInvoice>(
     },
     paidAt: { type: Date },
     paymentRef: { type: String },
+    // Dunning bucket markers: 'D1' | 'D3' | 'D7' | 'SUSPENDED'. Used by the
+    // dunning scheduler to de-dupe reminders across days and across reruns.
+    remindersSent: { type: [String], default: [] },
   },
   { timestamps: true }
 );

@@ -2,12 +2,15 @@ import { addMonths, addDays, startOfDay } from 'date-fns';
 import { Subscription } from '../models/Subscription';
 import { Package as PackagePlan } from '../models/Package';
 import { Invoice } from '../models/Invoice';
+import { User } from '../models/User';
 import { generateInvoiceNo } from '../utils/invoiceNo';
 import { logger } from '../config/logger';
 import { env } from '../config/env';
 import { mikrotikService } from './mikrotik.service';
 import { radiusService } from './radius.service';
 import { Router as RouterModel } from '../models/Router';
+import { notifyCustomer, templates } from './notification.service';
+import { emitWebhook } from './webhook.service';
 
 export const billingService = {
   /**
@@ -47,7 +50,7 @@ export const billingService = {
           periodStart,
         });
         if (!existing) {
-          await Invoice.create({
+          const invoice = await Invoice.create({
             invoiceNo: generateInvoiceNo(periodStart),
             customer: sub.customer,
             subscription: sub._id,
@@ -59,6 +62,31 @@ export const billingService = {
             status: 'unpaid',
           });
           invoicesCreated++;
+          // Fire-and-forget: notify the customer their invoice is ready and
+          // let downstream systems (accounting, CRMs) hear about it via the
+          // webhook fan-out. Never let a notification failure abort billing.
+          const customer = await User.findById(sub.customer).select('name email phone');
+          if (customer) {
+            const tmpl = templates.invoiceIssued({
+              name: customer.name,
+              invoiceNo: invoice.invoiceNo,
+              amount: invoice.amount,
+              dueDate,
+            });
+            await notifyCustomer(
+              { name: customer.name, email: customer.email, phone: customer.phone },
+              tmpl,
+              ['invoice', 'issued']
+            );
+          }
+          await emitWebhook('invoice.created', {
+            invoiceId: String(invoice._id),
+            invoiceNo: invoice.invoiceNo,
+            customerId: String(sub.customer),
+            subscriptionId: String(sub._id),
+            amount: invoice.amount,
+            dueDate,
+          }).catch(() => undefined);
         }
 
         sub.nextBillingDate = periodEnd;
@@ -124,14 +152,78 @@ export const billingService = {
     invoice.status = 'paid';
     invoice.paidAt = new Date();
     invoice.paymentRef = paymentRef;
+    // Reset dunning so a re-billed future period starts from a clean slate.
+    invoice.remindersSent = [];
     await invoice.save();
+
+    // Receipt + invoice.paid webhook (independent of provisioning outcome).
+    const customer = await User.findById(invoice.customer).select('name email phone');
+    if (customer) {
+      const tmpl = templates.paymentReceipt({
+        name: customer.name,
+        invoiceNo: invoice.invoiceNo,
+        amount: invoice.amount,
+        trxId: paymentRef,
+      });
+      await notifyCustomer(
+        { name: customer.name, email: customer.email, phone: customer.phone },
+        tmpl,
+        ['payment', 'receipt']
+      );
+    }
+    await emitWebhook('invoice.paid', {
+      invoiceId: String(invoice._id),
+      invoiceNo: invoice.invoiceNo,
+      customerId: String(invoice.customer),
+      amount: invoice.amount,
+      paymentRef,
+    }).catch(() => undefined);
+    await emitWebhook('payment.succeeded', {
+      invoiceId: String(invoice._id),
+      invoiceNo: invoice.invoiceNo,
+      customerId: String(invoice.customer),
+      amount: invoice.amount,
+      paymentRef,
+    }).catch(() => undefined);
 
     const sub = await Subscription.findById(invoice.subscription);
     if (!sub) return;
 
     const router = sub.router ? await RouterModel.findById(sub.router) : null;
 
-    if (sub.status === 'suspended') {
+    // Auto-provision on first payment: if the subscription is still 'pending'
+    // (admin created it from a lead but hasn't provisioned yet), bring it up
+    // on the router and flip to active now that money has actually moved.
+    if (sub.status === 'pending') {
+      try {
+        const pkg = await PackagePlan.findById(sub.package);
+        await mikrotikService.addPppoeUser(
+          {
+            username: sub.pppoeUsername,
+            // PPPoE secrets are only needed for provisioning; we don't
+            // round-trip them through the payment path.
+            password: sub.pppoeUsername,
+            profile: pkg?.mikrotikProfile || pkg?.code || 'default',
+            comment: `cust:${sub.customer}`,
+          },
+          router
+        );
+        sub.status = 'active';
+        sub.activatedAt = new Date();
+        await sub.save();
+        await emitWebhook('subscription.created', {
+          subscriptionId: String(sub._id),
+          customerId: String(sub.customer),
+          packageId: String(sub.package),
+          via: 'first-payment',
+        }).catch(() => undefined);
+      } catch (err) {
+        logger.error('Auto-provision on first payment failed; leaving pending', {
+          subId: String(sub._id),
+          err: (err as Error).message,
+        });
+      }
+    } else if (sub.status === 'suspended') {
       // Only flip the subscription back to 'active' if we actually succeeded
       // in re-enabling the PPPoE user on the router. Otherwise the customer
       // would appear active in the database while their line is still disabled
@@ -144,6 +236,19 @@ export const billingService = {
         sub.status = 'active';
         sub.suspendedAt = undefined;
         await sub.save();
+        if (customer) {
+          const tmpl = templates.serviceReactivated({ name: customer.name });
+          await notifyCustomer(
+            { name: customer.name, email: customer.email, phone: customer.phone },
+            tmpl,
+            ['subscription', 'reactivated']
+          );
+        }
+        await emitWebhook('subscription.reactivated', {
+          subscriptionId: String(sub._id),
+          customerId: String(sub.customer),
+          trigger: 'payment',
+        }).catch(() => undefined);
       } catch (err) {
         logger.error('Failed to re-enable PPPoE on payment; leaving subscription suspended for retry', {
           subId: String(sub._id),
