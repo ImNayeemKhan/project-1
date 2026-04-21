@@ -26,6 +26,7 @@ const adminNav: NavItem[] = [
   { href: '/admin/ftp', label: 'FTP servers' },
   { href: '/admin/addons', label: 'Add-ons' },
   { href: '/admin/reports', label: 'Reports' },
+  { href: '/admin/webhooks', label: 'Webhooks' },
 ];
 
 const customerNav: NavItem[] = [
