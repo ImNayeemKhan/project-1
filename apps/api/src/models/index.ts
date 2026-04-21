@@ -12,3 +12,5 @@ export * from './Announcement';
 export * from './UsageLog';
 export * from './KycDocument';
 export * from './Transaction';
+export * from './FtpServer';
+export * from './ServiceAddon';

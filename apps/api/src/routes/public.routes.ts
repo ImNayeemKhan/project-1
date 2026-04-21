@@ -5,6 +5,8 @@ import { validate } from '../middleware/validate';
 import { Package } from '../models/Package';
 import { Zone } from '../models/Zone';
 import { Lead } from '../models/Lead';
+import { FtpServer } from '../models/FtpServer';
+import { ServiceAddon } from '../models/ServiceAddon';
 
 export const publicRouter = Router();
 
@@ -21,6 +23,30 @@ publicRouter.get(
   '/zones',
   asyncHandler(async (_req, res) => {
     const items = await Zone.find({ isActive: true }).sort({ name: 1 });
+    res.json({ items });
+  })
+);
+
+// Marketing: list FTP / BDIX mirror servers, optionally filtered by category.
+// Only `public` servers are surfaced to anonymous visitors; customer-level
+// mirrors are exposed through `/customer/ftp` once a user logs in.
+publicRouter.get(
+  '/ftp-servers',
+  asyncHandler(async (req, res) => {
+    const category = (req.query.category as string | undefined)?.toLowerCase();
+    const filter: Record<string, unknown> = { isActive: true };
+    if (category && ['entertainment', 'carrier', 'business', 'partnership'].includes(category)) {
+      filter.category = category;
+    }
+    const items = await FtpServer.find(filter).sort({ sortOrder: 1, name: 1 });
+    res.json({ items });
+  })
+);
+
+publicRouter.get(
+  '/addons',
+  asyncHandler(async (_req, res) => {
+    const items = await ServiceAddon.find({ isActive: true }).sort({ sortOrder: 1, monthlyPrice: 1 });
     res.json({ items });
   })
 );

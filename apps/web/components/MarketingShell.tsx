@@ -11,6 +11,7 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
           <nav className="hidden items-center gap-8 text-sm md:flex">
             <Link href="/" className="text-slate-700 hover:text-brand-600">Home</Link>
             <Link href="/packages" className="text-slate-700 hover:text-brand-600">Packages</Link>
+            <Link href="/services" className="text-slate-700 hover:text-brand-600">Services</Link>
             <Link href="/about" className="text-slate-700 hover:text-brand-600">About</Link>
             <Link href="/contact" className="text-slate-700 hover:text-brand-600">Contact</Link>
           </nav>
@@ -33,6 +34,11 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
             <div className="text-sm font-semibold text-slate-800">Explore</div>
             <ul className="mt-2 space-y-1 text-sm text-slate-600">
               <li><Link href="/packages">Packages</Link></li>
+              <li><Link href="/services">Services</Link></li>
+              <li><Link href="/services/entertainment">Entertainment FTP</Link></li>
+              <li><Link href="/services/business">Business</Link></li>
+              <li><Link href="/services/carrier">Carrier</Link></li>
+              <li><Link href="/services/partnership">Partnership</Link></li>
               <li><Link href="/about">About us</Link></li>
               <li><Link href="/contact">Contact</Link></li>
             </ul>

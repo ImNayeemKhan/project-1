@@ -21,6 +21,8 @@ const adminNav: NavItem[] = [
   { href: '/admin/leads', label: 'Leads (CRM)' },
   { href: '/admin/announcements', label: 'Announcements' },
   { href: '/admin/wallet', label: 'Wallet' },
+  { href: '/admin/ftp', label: 'FTP servers' },
+  { href: '/admin/addons', label: 'Add-ons' },
   { href: '/admin/reports', label: 'Reports' },
 ];
 
@@ -29,6 +31,7 @@ const customerNav: NavItem[] = [
   { href: '/customer/invoices', label: 'Invoices' },
   { href: '/customer/tickets', label: 'Support tickets' },
   { href: '/customer/announcements', label: 'Announcements' },
+  { href: '/customer/ftp', label: 'FTP servers' },
   { href: '/customer/profile', label: 'Profile & wallet' },
 ];
 
