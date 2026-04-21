@@ -7,7 +7,7 @@ import { Lead } from '../models/Lead';
 import { NotFound } from '../utils/errors';
 
 export const adminLeadsRouter = Router();
-adminLeadsRouter.use(requireAuth, requireRole('admin', 'reseller'));
+adminLeadsRouter.use(requireAuth, requireRole('admin'));
 
 adminLeadsRouter.get(
   '/',

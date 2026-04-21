@@ -15,7 +15,7 @@ import { radiusService } from '../services/radius.service';
 import { escapeRegex } from '../utils/regex';
 
 export const adminSubscriptionsRouter = Router();
-adminSubscriptionsRouter.use(requireAuth, requireRole('admin', 'reseller'));
+adminSubscriptionsRouter.use(requireAuth, requireRole('admin'));
 
 adminSubscriptionsRouter.get(
   '/',

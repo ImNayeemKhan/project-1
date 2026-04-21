@@ -9,7 +9,7 @@ import { User } from '../models/User';
 import { Ticket } from '../models/Ticket';
 
 export const adminReportsRouter = Router();
-adminReportsRouter.use(requireAuth, requireRole('admin', 'reseller'));
+adminReportsRouter.use(requireAuth, requireRole('admin'));
 
 // High-level KPIs for the admin dashboard.
 adminReportsRouter.get(

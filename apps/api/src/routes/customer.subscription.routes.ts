@@ -140,6 +140,23 @@ customerSubscriptionRouter.post(
     if (!sub) throw NotFound('Subscription not found');
     if (!sub.pausedAt) throw BadRequest('Subscription is not paused');
 
+    // A subscription can be paused AND also billing-suspended (dunning/overdue)
+    // at the same time: the customer paused first, then an invoice went overdue
+    // and the billing cron flipped `status = 'suspended'` without touching
+    // `pausedAt`. Without this guard, the customer could call /resume, we'd
+    // clear `pausedAt` and set `status = 'active'`, the PPPoE line would come
+    // back up — and they'd be browsing on an unpaid invoice. Require the
+    // invoice to be paid first.
+    const outstanding = await Invoice.countDocuments({
+      subscription: sub._id,
+      status: { $in: ['unpaid', 'overdue'] },
+    });
+    if (outstanding > 0) {
+      throw BadRequest(
+        'You have an outstanding invoice. Please pay it before resuming service.'
+      );
+    }
+
     const router = sub.router ? await RouterModel.findById(sub.router) : null;
     try {
       await mikrotikService.setPppoeEnabled(sub.pppoeUsername, true, router);

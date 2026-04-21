@@ -15,6 +15,12 @@ const schema = z.object({
   JWT_REFRESH_TTL: z.string().default('30d'),
   BCRYPT_ROUNDS: z.coerce.number().default(12),
 
+  // Customer accounts on an ISP platform should be created through the
+  // admin / leads pipeline, not self-service. This flag stays `false` in
+  // production; flip to `true` only for demos or local development where
+  // you want anonymous signup.
+  PUBLIC_REGISTRATION_ENABLED: z.coerce.boolean().default(false),
+
   REDIS_URL: z.string().default('redis://127.0.0.1:6379'),
 
   LOG_LEVEL: z.string().default('info'),

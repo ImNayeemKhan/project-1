@@ -9,7 +9,7 @@ import { NotFound } from '../utils/errors';
 import { emitWebhook } from '../services/webhook.service';
 
 export const adminTicketsRouter = Router();
-adminTicketsRouter.use(requireAuth, requireRole('admin', 'reseller'));
+adminTicketsRouter.use(requireAuth, requireRole('admin'));
 
 adminTicketsRouter.get(
   '/',

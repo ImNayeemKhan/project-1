@@ -19,7 +19,7 @@ import {
 } from '../services/analytics.service';
 
 export const adminBiRouter = Router();
-adminBiRouter.use(requireAuth, requireRole('admin', 'reseller'));
+adminBiRouter.use(requireAuth, requireRole('admin'));
 
 /**
  * Headline KPIs for the BI dashboard. One chatty endpoint on purpose so the

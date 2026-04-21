@@ -10,7 +10,7 @@ import { withLock } from '../utils/lock';
 import { Conflict, NotFound } from '../utils/errors';
 
 export const adminInvoicesRouter = Router();
-adminInvoicesRouter.use(requireAuth, requireRole('admin', 'reseller'));
+adminInvoicesRouter.use(requireAuth, requireRole('admin'));
 
 adminInvoicesRouter.get(
   '/',
