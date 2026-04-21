@@ -59,9 +59,9 @@ export const billingService = {
         // reuse it instead of duplicating. Void invoices are explicitly
         // excluded — an admin voiding last month's invoice should not cause
         // the customer to skip billing for that period entirely; the next
-        // billing run should mint a replacement. A compound unique index on
-        // (subscription, periodStart, status != 'void') enforces this at
-        // the database layer as well.
+        // billing run should mint a replacement. The partial unique index on
+        // Invoice (subscription, periodStart) WHERE status != 'void'
+        // enforces this at the database layer as well.
         const existing = await Invoice.findOne({
           subscription: sub._id,
           periodStart,
