@@ -63,16 +63,22 @@ export function PremiumPlanGrid({ packages }: { packages: PackageRow[] }) {
     return visible[1]._id;
   }, [visible]);
 
+  const fmtAmount = (bdt: number): string => {
+    const display = currency === 'bdt' ? bdt : bdt / USD_RATE;
+    const symbol = currency === 'bdt' ? '৳' : '$';
+    const rounded = Math.round(display);
+    return `${symbol}${rounded.toLocaleString(currency === 'bdt' ? 'en-BD' : 'en-US')}`;
+  };
+
   const fmtPrice = (monthly: number): { amount: string; suffix: string } => {
     const { multiplier, discount, label } = CYCLE_FACTOR[cycle];
     const totalBdt = monthly * multiplier * (1 - discount);
-    const display = currency === 'bdt' ? totalBdt : totalBdt / USD_RATE;
-    const symbol = currency === 'bdt' ? '৳' : '$';
-    const rounded = Math.round(display);
-    return {
-      amount: `${symbol}${rounded.toLocaleString(currency === 'bdt' ? 'en-BD' : 'en-US')}`,
-      suffix: label,
-    };
+    return { amount: fmtAmount(totalBdt), suffix: label };
+  };
+
+  const fmtMonthlyEquivalent = (monthly: number): string => {
+    const { discount } = CYCLE_FACTOR[cycle];
+    return fmtAmount(monthly * (1 - discount));
   };
 
   const fupLevel = (fupGB?: number): 0 | 1 | 2 | 3 => {
@@ -161,7 +167,7 @@ export function PremiumPlanGrid({ packages }: { packages: PackageRow[] }) {
                     </div>
                     {cycle !== 'monthly' ? (
                       <div className="mt-1 text-[12px] text-subtle">
-                        equivalent to {fmtPrice(pkg.monthlyPrice).amount.replace(/\/.+$/, '')}/mo
+                        equivalent to {fmtMonthlyEquivalent(pkg.monthlyPrice)}/mo
                       </div>
                     ) : null}
                     <div className="mt-5 flex items-center gap-4 border-t border-subtle pt-5 text-[13px] text-secondary">
