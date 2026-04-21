@@ -1,6 +1,9 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { BRAND } from '@/lib/brand';
+import { SpeedTypewriter } from '@/components/SpeedTypewriter';
+import { AnimatedCounter } from '@/components/AnimatedCounter';
+import { ScrollReveal } from '@/components/ScrollReveal';
 
 export const metadata: Metadata = {
   title: `${BRAND.name} — Fiber internet for homes, gamers, and corporates`,
@@ -74,10 +77,11 @@ export default async function HomePage() {
         <div className="absolute inset-0 bg-gradient-to-br from-slate-900/85 via-slate-900/70 to-brand-700/70" />
         <div className="relative mx-auto max-w-6xl px-6 py-24 md:py-32">
           <span className="inline-block rounded-full bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-wider text-white/90 backdrop-blur">
-            Fiber-grade internet
+            Fiber-grade internet — since 2015
           </span>
           <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-tight text-white md:text-6xl">
-            Internet deals — backed by 99.9% reliability.
+            Internet deals — backed by{' '}
+            <SpeedTypewriter />
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-slate-200">
             Do more of what you love and keep the whole house connected. {BRAND.name} delivers
@@ -94,38 +98,62 @@ export default async function HomePage() {
             >
               Get connected
             </Link>
+            <a
+              href={BRAND.whatsappHref}
+              target="_blank"
+              rel="noreferrer"
+              className="btn border border-emerald-300/40 bg-emerald-500/20 text-white backdrop-blur hover:bg-emerald-500/30"
+            >
+              WhatsApp sales
+            </a>
           </div>
           <div className="mt-10 grid max-w-3xl grid-cols-2 gap-6 text-white md:grid-cols-4">
-            <Stat value="99.9%" label="Uptime SLA" />
-            <Stat value="24/7" label="NOC support" />
-            <Stat value="Fiber" label="FTTH core" />
-            <Stat value="BDIX" label="Entertainment mirrors" />
+            <Stat>
+              <AnimatedCounter to={99.9} decimals={1} suffix="%" />
+              <div className="text-sm text-white/80">Uptime SLA</div>
+            </Stat>
+            <Stat>
+              <AnimatedCounter to={24} suffix="/7" />
+              <div className="text-sm text-white/80">NOC support</div>
+            </Stat>
+            <Stat>
+              <AnimatedCounter to={15000} suffix="+" />
+              <div className="text-sm text-white/80">Homes online</div>
+            </Stat>
+            <Stat>
+              <AnimatedCounter to={130} suffix=" Mbps" />
+              <div className="text-sm text-white/80">Peak home plan</div>
+            </Stat>
           </div>
         </div>
       </section>
 
       {/* Features */}
       <section className="mx-auto max-w-6xl px-6 py-20">
-        <div className="mb-12 text-center">
-          <h2 className="text-3xl font-bold text-slate-900">Built for real homes and real businesses</h2>
-          <p className="mt-2 text-slate-600">
-            No hidden fees, no artificial speed caps, and a billing system you can check from your phone.
-          </p>
-        </div>
+        <ScrollReveal>
+          <div className="mb-12 text-center">
+            <h2 className="text-3xl font-bold text-slate-900">Built for real homes and real businesses</h2>
+            <p className="mt-2 text-slate-600">
+              No hidden fees, no artificial speed caps, and a billing system you can check from your phone.
+            </p>
+          </div>
+        </ScrollReveal>
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          {features.map((f) => (
-            <div key={f.title} className="card flex gap-5">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={f.img}
-                alt={f.title}
-                className="hidden h-24 w-32 rounded-md object-cover sm:block"
-              />
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900">{f.title}</h3>
-                <p className="mt-1 text-sm text-slate-600">{f.body}</p>
+          {features.map((f, i) => (
+            <ScrollReveal key={f.title} delayMs={i * 80}>
+              <div className="card flex gap-5 transition hover:-translate-y-0.5 hover:shadow-lg">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={f.img}
+                  alt={f.title}
+                  className="hidden h-24 w-32 rounded-md object-cover sm:block"
+                />
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-900">{f.title}</h3>
+                  <p className="mt-1 text-sm text-slate-600">{f.body}</p>
+                </div>
               </div>
-            </div>
+            </ScrollReveal>
           ))}
         </div>
       </section>
@@ -133,19 +161,23 @@ export default async function HomePage() {
       {/* Packages preview */}
       <section className="bg-slate-50 py-20">
         <div className="mx-auto max-w-6xl px-6">
-          <div className="mb-10 flex items-end justify-between">
-            <div>
-              <h2 className="text-3xl font-bold text-slate-900">Popular packages</h2>
-              <p className="mt-2 text-slate-600">Pick a plan — we&apos;ll handle the rest.</p>
+          <ScrollReveal>
+            <div className="mb-10 flex items-end justify-between">
+              <div>
+                <h2 className="text-3xl font-bold text-slate-900">Popular packages</h2>
+                <p className="mt-2 text-slate-600">Pick a plan — we&apos;ll handle the rest.</p>
+              </div>
+              <Link href="/packages" className="text-sm font-semibold text-brand-600 hover:underline">
+                View all packages →
+              </Link>
             </div>
-            <Link href="/packages" className="text-sm font-semibold text-brand-600 hover:underline">
-              View all packages →
-            </Link>
-          </div>
+          </ScrollReveal>
           <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
             {packages.length > 0 ? (
-              packages.map((p) => (
-                <PackageCard key={p._id} pkg={p} />
+              packages.map((p, i) => (
+                <ScrollReveal key={p._id} delayMs={i * 100}>
+                  <PackageCard pkg={p} />
+                </ScrollReveal>
               ))
             ) : (
               <p className="col-span-3 text-center text-slate-500">
@@ -158,42 +190,57 @@ export default async function HomePage() {
 
       {/* CTA */}
       <section className="mx-auto max-w-6xl px-6 py-20">
-        <div className="rounded-2xl bg-gradient-to-r from-brand-600 to-brand-500 px-10 py-14 text-white shadow-lg">
-          <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
-            <div>
-              <h3 className="text-2xl font-bold">Ready to get connected?</h3>
-              <p className="mt-1 text-white/90">
-                Drop us your address and we&apos;ll confirm coverage and install within 24–48 hours.
-              </p>
+        <ScrollReveal>
+          <div className="rounded-2xl bg-gradient-to-r from-brand-600 to-brand-500 px-10 py-14 text-white shadow-lg">
+            <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:items-center">
+              <div>
+                <h3 className="text-2xl font-bold">Ready to get connected?</h3>
+                <p className="mt-1 text-white/90">
+                  Drop us your address and we&apos;ll confirm coverage and install within 24–48 hours.
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Link
+                  href="/contact"
+                  className="btn bg-white text-brand-700 hover:bg-slate-100"
+                >
+                  Check coverage
+                </Link>
+                <a
+                  href={BRAND.selfcareUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="btn border border-white/30 bg-transparent text-white hover:bg-white/10"
+                >
+                  Pay bill
+                </a>
+              </div>
             </div>
-            <Link
-              href="/contact"
-              className="btn bg-white text-brand-700 hover:bg-slate-100"
-            >
-              Request a connection
-            </Link>
           </div>
-        </div>
+        </ScrollReveal>
       </section>
     </>
   );
 }
 
-function Stat({ value, label }: { value: string; label: string }) {
+function Stat({ children }: { children: React.ReactNode }) {
   return (
-    <div>
-      <div className="text-3xl font-bold">{value}</div>
-      <div className="text-sm text-white/80">{label}</div>
+    <div className="text-3xl font-bold">
+      {children}
     </div>
   );
 }
 
 function PackageCard({ pkg }: { pkg: PackagePreview }) {
   return (
-    <div className="card flex flex-col overflow-hidden p-0">
+    <div className="card group flex h-full flex-col overflow-hidden p-0 transition duration-200 hover:-translate-y-1 hover:shadow-xl">
       {pkg.imageUrl && (
         // eslint-disable-next-line @next/next/no-img-element
-        <img src={pkg.imageUrl} alt={pkg.name} className="h-40 w-full object-cover" />
+        <img
+          src={pkg.imageUrl}
+          alt={pkg.name}
+          className="h-40 w-full object-cover transition duration-500 group-hover:scale-105"
+        />
       )}
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-center justify-between">
@@ -208,7 +255,7 @@ function PackageCard({ pkg }: { pkg: PackagePreview }) {
         <div className="mt-3 text-sm text-slate-600">
           {pkg.downloadMbps} ↓ / {pkg.uploadMbps} ↑ Mbps
         </div>
-        <div className="mt-5">
+        <div className="mt-auto pt-5">
           <Link href="/contact" className="btn-primary w-full justify-center">
             Get this plan
           </Link>

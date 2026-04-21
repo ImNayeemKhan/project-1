@@ -8,7 +8,14 @@ export const metadata: Metadata = {
     `${BRAND.name} delivers fiber-optic home, gaming, and corporate internet across Dhaka ` +
     `with 24/7 local support, online bill payment, and BDIX entertainment mirrors. ${BRAND.tagline}.`,
   icons: {
-    icon: 'https://deshcommunications.net/favicon.png',
+    icon: BRAND.faviconUrl,
+    apple: BRAND.logoSquareUrl,
+  },
+  openGraph: {
+    title: BRAND.name,
+    description: BRAND.tagline,
+    images: [BRAND.ogImageUrl],
+    type: 'website',
   },
 };
 

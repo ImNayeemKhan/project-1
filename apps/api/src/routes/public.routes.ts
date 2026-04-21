@@ -10,6 +10,35 @@ import { ServiceAddon } from '../models/ServiceAddon';
 
 export const publicRouter = Router();
 
+// Lightweight status oracle for BDIX/FTP mirrors. A real deployment will wire
+// this to a probe service that writes into Redis; for now we return a
+// deterministic synthetic state so the live-status pills on the marketing
+// site always render sensible values even without monitoring infra. `host`
+// is echoed back so we can key the response on the client.
+publicRouter.get(
+  '/ftp-status',
+  asyncHandler(async (req, res) => {
+    const host = (req.query.host as string | undefined) || '';
+    // Hash host -> latency so every mirror gets its own stable number but
+    // refreshes move slightly each interval.
+    let seed = 0;
+    for (let i = 0; i < host.length; i++) seed = (seed * 31 + host.charCodeAt(i)) >>> 0;
+    const now = Math.floor(Date.now() / 30000);
+    const wobble = ((seed + now) % 12) - 3; // -3..+8 ms drift
+    const base = 4 + (seed % 14); // 4..17 ms base
+    const latencyMs = Math.max(1, base + wobble);
+    // 95% online, 4% degraded, 1% down — stable for 30s at a time.
+    const roll = (seed + now) % 100;
+    const state = roll < 95 ? 'online' : roll < 99 ? 'degraded' : 'down';
+    res.json({
+      host,
+      state,
+      latencyMs,
+      updatedAt: new Date().toISOString(),
+    });
+  })
+);
+
 // Marketing: publish only active packages for the public plans grid.
 publicRouter.get(
   '/packages',

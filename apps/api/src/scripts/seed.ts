@@ -75,6 +75,7 @@ async function main() {
     {
       name: 'Basic',
       code: 'DESH-PER-BASIC',
+      category: 'personal' as const,
       tagline: '25 Mbps fiber for everyday use',
       description: 'Everyday home internet on our fiber network. Includes unlimited BDIX at full line speed.',
       imageUrl: IMG.personalEntry,
@@ -88,6 +89,7 @@ async function main() {
     {
       name: 'Blaze',
       code: 'DESH-PER-BLAZE',
+      category: 'personal' as const,
       tagline: '30 Mbps for small families',
       description: 'Comfortable HD streaming, video calls, and online gaming for a small family.',
       imageUrl: IMG.personalEntry,
@@ -101,6 +103,7 @@ async function main() {
     {
       name: 'Bronze',
       code: 'DESH-PER-BRONZE',
+      category: 'personal' as const,
       tagline: '40 Mbps — the sweet spot',
       description: 'Plenty of bandwidth for multi-device homes, 4K streaming, and big downloads.',
       imageUrl: IMG.personalStream,
@@ -114,6 +117,7 @@ async function main() {
     {
       name: 'Comfort',
       code: 'DESH-PER-COMFORT',
+      category: 'personal' as const,
       tagline: '50 Mbps for busy households',
       description: 'Crowd favourite. Balanced speed and price — ideal for families with 8–10 devices.',
       imageUrl: IMG.personalStandard,
@@ -128,6 +132,7 @@ async function main() {
     {
       name: 'Turbo',
       code: 'DESH-PER-TURBO',
+      category: 'personal' as const,
       tagline: '60 Mbps for power users',
       description: 'Smooth 4K streaming, low-latency gaming, and work-from-home without compromise.',
       imageUrl: IMG.personalStandard,
@@ -141,6 +146,7 @@ async function main() {
     {
       name: 'Signature',
       code: 'DESH-PER-SIGNATURE',
+      category: 'personal' as const,
       tagline: '70 Mbps for large homes',
       description: 'Premium fiber speed for larger homes with heavy streaming and multiple gamers.',
       imageUrl: IMG.personalPro,
@@ -154,6 +160,7 @@ async function main() {
     {
       name: 'Gold',
       code: 'DESH-PER-GOLD',
+      category: 'personal' as const,
       tagline: '80 Mbps premium',
       description: 'Our premium personal tier — for power users and content creators.',
       imageUrl: IMG.personalGold,
@@ -167,6 +174,7 @@ async function main() {
     {
       name: 'Platinum',
       code: 'DESH-PER-PLATINUM',
+      category: 'personal' as const,
       tagline: '100 Mbps for heavy users',
       description: 'Triple-digit fiber for heavy uploaders, streamers, and multi-worker homes.',
       imageUrl: IMG.personalPlatinum,
@@ -180,6 +188,7 @@ async function main() {
     {
       name: 'Diamond',
       code: 'DESH-PER-DIAMOND',
+      category: 'personal' as const,
       tagline: '130 Mbps — flagship home plan',
       description: 'Our flagship home plan. Maximum fiber speed on a 1:8 contention ratio.',
       imageUrl: IMG.personalPlatinum,
@@ -195,6 +204,7 @@ async function main() {
     {
       name: 'SME — Basic (30 Mbps)',
       code: 'DESH-SME-BASIC',
+      category: 'corporate' as const,
       tagline: 'Dedicated bandwidth for small offices',
       description: 'Dedicated 30 Mbps bandwidth with 100% speed consistency for shops and small offices.',
       imageUrl: IMG.sme,
@@ -217,6 +227,7 @@ async function main() {
     {
       name: 'SME — Elite (50 Mbps)',
       code: 'DESH-SME-ELITE',
+      category: 'corporate' as const,
       tagline: 'Dedicated + redundant for growing businesses',
       description: 'Dedicated 50 Mbps bandwidth with upstream redundancy — ideal for growing businesses.',
       imageUrl: IMG.smeElite,
@@ -239,6 +250,7 @@ async function main() {
     {
       name: 'SME — Economy (100 Mbps)',
       code: 'DESH-SME-ECONOMY',
+      category: 'corporate' as const,
       tagline: '100 Mbps — call for price',
       description:
         'Ideal for offices — dedicated 100 Mbps bandwidth with free LAN setup. ' +
@@ -265,6 +277,7 @@ async function main() {
     {
       name: 'GAME STARTER',
       code: 'DESH-GAME-STARTER',
+      category: 'gaming' as const,
       tagline: 'Up to 40 Mbps with low-latency gaming network',
       description: 'Up to 40 Mbps with up to 70% speed consistency on our low-latency gaming network.',
       imageUrl: IMG.gameStarter,
@@ -287,6 +300,7 @@ async function main() {
     {
       name: 'GAME PRO',
       code: 'DESH-GAME-PRO',
+      category: 'gaming' as const,
       tagline: 'Exclusive bandwidth for competitive gamers',
       description: 'Exclusive bandwidth privileges, dedicated gaming cache, and up to 90% speed consistency.',
       imageUrl: IMG.gamePro,

@@ -1,4 +1,5 @@
 import type { FtpServerRow } from '@/lib/ftp';
+import { MirrorStatus } from './MirrorStatus';
 
 const accessBadge: Record<FtpServerRow['accessLevel'], { label: string; tone: string }> = {
   public: { label: 'Open to all', tone: 'bg-green-100 text-green-800' },
@@ -10,10 +11,19 @@ const accessBadge: Record<FtpServerRow['accessLevel'], { label: string; tone: st
 export function FtpCard({ server }: { server: FtpServerRow }) {
   const access = accessBadge[server.accessLevel];
   return (
-    <article className="card flex flex-col overflow-hidden p-0">
+    <article className="card group flex flex-col overflow-hidden p-0 transition duration-200 hover:-translate-y-1 hover:shadow-xl">
       {server.imageUrl && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img src={server.imageUrl} alt={server.name} className="h-40 w-full object-cover" />
+        <div className="relative">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={server.imageUrl}
+            alt={server.name}
+            className="h-40 w-full object-cover transition duration-500 group-hover:scale-105"
+          />
+          <div className="absolute right-3 top-3">
+            <MirrorStatus host={server.host} />
+          </div>
+        </div>
       )}
       <div className="flex flex-1 flex-col p-5">
         <div className="flex items-center justify-between gap-2">

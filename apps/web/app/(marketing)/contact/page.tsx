@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { BRAND } from '@/lib/brand';
+import { CoverageChecker } from '@/components/CoverageChecker';
 
 export default function ContactPage() {
   const [name, setName] = useState('');
@@ -47,6 +48,10 @@ export default function ContactPage() {
         Drop your details and our sales team will reach out within one business day to confirm
         coverage, recommend a plan, and schedule installation.
       </p>
+
+      <div className="mt-8">
+        <CoverageChecker />
+      </div>
 
       <div className="mt-10 grid gap-10 md:grid-cols-[2fr_1fr]">
         <form onSubmit={onSubmit} className="card space-y-4">

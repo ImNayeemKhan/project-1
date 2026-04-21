@@ -17,8 +17,11 @@ export const BRAND = {
     'skilled team of professionals. Our approach centers on innovation and accountability, ' +
     'aiming to simplify and enhance the digital experience for both individuals and ' +
     'organizations.',
-  logoUrl: 'https://deshcommunications.net/logo/logo.png',
-  footerLogoUrl: 'https://deshcommunications.net/logo/footer-logo.png',
+  logoUrl: '/brand/logo.png',
+  footerLogoUrl: '/brand/logo.png',
+  logoSquareUrl: '/brand/logo-square-128.png',
+  faviconUrl: '/brand/favicon.png',
+  ogImageUrl: '/brand/logo.png',
   phones: [
     { label: 'Sales & connection', value: '+88-01941335760', href: 'tel:+8801941335760' },
     { label: 'Sales & connection', value: '+88-01941335761', href: 'tel:+8801941335761' },
@@ -28,6 +31,8 @@ export const BRAND = {
   primaryPhoneHref: 'tel:09643111444',
   email: 'info@deshcommunications.net',
   emailHref: 'mailto:info@deshcommunications.net',
+  whatsappHref: 'https://wa.me/8801941335760',
+  selfcareUrl: 'https://selfcare.deshcommunications.net/pay/',
   address: {
     line1: 'SHOPNO CHURA, House# 135/A, Road# 01',
     line2: 'Mohammadia Housing Society',
@@ -35,4 +40,8 @@ export const BRAND = {
     short: 'Mohammadpur, Dhaka',
   },
   supportHours: 'Sales: Sat–Thu, 9:00–21:00  ·  NOC & technical support: 24/7',
+  social: {
+    facebook: 'https://www.facebook.com/deshcommunicationsltd',
+    youtube: 'https://www.youtube.com/@deshcommunications',
+  },
 } as const;

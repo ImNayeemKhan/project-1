@@ -1,9 +1,12 @@
 import { Schema, model, Types } from 'mongoose';
 
+export type PackageCategory = 'personal' | 'gaming' | 'corporate';
+
 export interface IPackage {
   _id: Types.ObjectId;
   name: string;
   code: string;
+  category: PackageCategory;
   tagline?: string;
   description?: string;
   imageUrl?: string;
@@ -25,6 +28,12 @@ const PackageSchema = new Schema<IPackage>(
   {
     name: { type: String, required: true, trim: true },
     code: { type: String, required: true, unique: true, trim: true, uppercase: true, index: true },
+    category: {
+      type: String,
+      enum: ['personal', 'gaming', 'corporate'],
+      default: 'personal',
+      index: true,
+    },
     tagline: { type: String, trim: true },
     description: { type: String, trim: true },
     imageUrl: { type: String, trim: true },

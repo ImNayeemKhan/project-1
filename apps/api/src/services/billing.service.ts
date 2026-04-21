@@ -36,21 +36,33 @@ export const billingService = {
         const graceAnchor = today > periodStart ? today : periodStart;
         const dueDate = addDays(graceAnchor, env.BILLING_GRACE_DAYS);
 
-        await Invoice.create({
-          invoiceNo: generateInvoiceNo(periodStart),
-          customer: sub.customer,
+        // Idempotency guard: if we previously created this invoice but the
+        // subscription save failed afterwards (or a concurrent run raced us),
+        // reuse it instead of duplicating. Void invoices are considered
+        // "cancelled for this period" and still count as already-invoiced.
+        // A compound unique index on (subscription, periodStart) enforces
+        // this at the database layer as well.
+        const existing = await Invoice.findOne({
           subscription: sub._id,
-          amount: pkg.monthlyPrice,
-          currency: 'BDT',
           periodStart,
-          periodEnd,
-          dueDate,
-          status: 'unpaid',
         });
+        if (!existing) {
+          await Invoice.create({
+            invoiceNo: generateInvoiceNo(periodStart),
+            customer: sub.customer,
+            subscription: sub._id,
+            amount: pkg.monthlyPrice,
+            currency: 'BDT',
+            periodStart,
+            periodEnd,
+            dueDate,
+            status: 'unpaid',
+          });
+          invoicesCreated++;
+        }
 
         sub.nextBillingDate = periodEnd;
         await sub.save();
-        invoicesCreated++;
       } catch (err) {
         // Per-subscription failure must not abort the whole billing run;
         // log and move on to the next subscription.
@@ -105,7 +117,9 @@ export const billingService = {
   async markInvoicePaid(invoiceId: string, paymentRef: string): Promise<void> {
     const invoice = await Invoice.findById(invoiceId);
     if (!invoice) throw new Error('Invoice not found');
-    if (invoice.status === 'paid') return;
+    // Already-terminal statuses: paid (idempotent no-op) and void
+    // (administratively cancelled — must NOT reactivate a cancelled service).
+    if (invoice.status === 'paid' || invoice.status === 'void') return;
 
     invoice.status = 'paid';
     invoice.paidAt = new Date();

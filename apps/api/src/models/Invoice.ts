@@ -41,4 +41,10 @@ const InvoiceSchema = new Schema<IInvoice>(
   { timestamps: true }
 );
 
+// Hard guarantee that billing can never create two invoices for the same
+// subscription + period, even if the service-level guard is bypassed by a
+// race condition or a redis-lock fallback. `periodStart` is always midnight
+// UTC so the compound key is stable.
+InvoiceSchema.index({ subscription: 1, periodStart: 1 }, { unique: true });
+
 export const Invoice = model<IInvoice>('Invoice', InvoiceSchema);
