@@ -12,7 +12,7 @@ adminPackagesRouter.use(requireAuth, requireRole('admin'));
 adminPackagesRouter.get(
   '/',
   asyncHandler(async (_req, res) => {
-    const items = await Package.find().sort({ createdAt: -1 });
+    const items = await Package.find().sort({ sortOrder: 1, createdAt: -1 });
     res.json({ items });
   })
 );
@@ -20,12 +20,19 @@ adminPackagesRouter.get(
 const upsertSchema = z.object({
   name: z.string().min(1),
   code: z.string().min(1),
+  tagline: z.string().optional(),
+  description: z.string().optional(),
+  imageUrl: z.string().url().optional(),
   downloadMbps: z.number().min(0),
   uploadMbps: z.number().min(0),
   monthlyPrice: z.number().min(0),
+  setupFee: z.number().min(0).optional(),
   fupGB: z.number().min(0).optional(),
+  features: z.array(z.string()).optional(),
   mikrotikProfile: z.string().optional(),
   isActive: z.boolean().optional(),
+  isFeatured: z.boolean().optional(),
+  sortOrder: z.number().optional(),
 });
 
 adminPackagesRouter.post(

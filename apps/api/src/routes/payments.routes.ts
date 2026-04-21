@@ -57,6 +57,17 @@ paymentsRouter.all(
     const payment = await Payment.findOne({ gatewayPaymentId: paymentId });
     if (!payment) throw NotFound('Payment not found');
 
+    // Idempotency guard — a replayed or forged callback must never overwrite
+    // a payment that has already reached a terminal state. Redirect based on
+    // the stored status and return early.
+    if (payment.status !== 'pending') {
+      return res.redirect(
+        payment.status === 'success'
+          ? `/pay/success?tx=${payment.gatewayTxnId ?? ''}`
+          : '/pay/failed'
+      );
+    }
+
     if (status !== 'success') {
       payment.status = 'failed';
       payment.processedAt = new Date();

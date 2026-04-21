@@ -25,26 +25,35 @@ export const billingService = {
     }).populate('package');
 
     for (const sub of due) {
-      const pkg = sub.package as unknown as { monthlyPrice: number };
-      const periodStart = sub.nextBillingDate;
-      const periodEnd = addMonths(periodStart, 1);
-      const dueDate = addDays(periodStart, env.BILLING_GRACE_DAYS);
+      try {
+        const pkg = sub.package as unknown as { monthlyPrice: number };
+        const periodStart = sub.nextBillingDate;
+        const periodEnd = addMonths(periodStart, 1);
+        const dueDate = addDays(periodStart, env.BILLING_GRACE_DAYS);
 
-      await Invoice.create({
-        invoiceNo: generateInvoiceNo(periodStart),
-        customer: sub.customer,
-        subscription: sub._id,
-        amount: pkg.monthlyPrice,
-        currency: 'BDT',
-        periodStart,
-        periodEnd,
-        dueDate,
-        status: 'unpaid',
-      });
+        await Invoice.create({
+          invoiceNo: generateInvoiceNo(periodStart),
+          customer: sub.customer,
+          subscription: sub._id,
+          amount: pkg.monthlyPrice,
+          currency: 'BDT',
+          periodStart,
+          periodEnd,
+          dueDate,
+          status: 'unpaid',
+        });
 
-      sub.nextBillingDate = periodEnd;
-      await sub.save();
-      invoicesCreated++;
+        sub.nextBillingDate = periodEnd;
+        await sub.save();
+        invoicesCreated++;
+      } catch (err) {
+        // Per-subscription failure must not abort the whole billing run;
+        // log and move on to the next subscription.
+        logger.error('Failed to invoice subscription', {
+          subId: String(sub._id),
+          err: (err as Error).message,
+        });
+      }
     }
 
     // Suspend subscriptions with unpaid invoices past the grace period.

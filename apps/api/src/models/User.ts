@@ -11,6 +11,11 @@ export interface IUser {
   passwordHash: string;
   isActive: boolean;
   lastLoginAt?: Date;
+  // Extended ISP customer profile
+  address?: string;
+  nid?: string;
+  zone?: Types.ObjectId;
+  walletBalance: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -26,6 +31,10 @@ const UserSchema = new Schema<IUser>(
     passwordHash: { type: String, required: true },
     isActive: { type: Boolean, default: true },
     lastLoginAt: { type: Date },
+    address: { type: String, trim: true },
+    nid: { type: String, trim: true, index: true, sparse: true },
+    zone: { type: Schema.Types.ObjectId, ref: 'Zone', index: true },
+    walletBalance: { type: Number, default: 0, min: 0 },
   },
   { timestamps: true }
 );

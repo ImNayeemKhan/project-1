@@ -25,3 +25,7 @@ pids/
 
 # runtime
 tmp/
+
+# TypeScript build info
+*.tsbuildinfo
+

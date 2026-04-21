@@ -12,15 +12,24 @@ interface NavItem {
 const adminNav: NavItem[] = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/customers', label: 'Customers' },
-  { href: '/admin/packages', label: 'Packages' },
   { href: '/admin/subscriptions', label: 'Subscriptions' },
   { href: '/admin/invoices', label: 'Invoices' },
+  { href: '/admin/packages', label: 'Packages' },
+  { href: '/admin/zones', label: 'Zones' },
   { href: '/admin/routers', label: 'Routers' },
+  { href: '/admin/tickets', label: 'Tickets' },
+  { href: '/admin/leads', label: 'Leads (CRM)' },
+  { href: '/admin/announcements', label: 'Announcements' },
+  { href: '/admin/wallet', label: 'Wallet' },
+  { href: '/admin/reports', label: 'Reports' },
 ];
 
 const customerNav: NavItem[] = [
   { href: '/customer', label: 'Overview' },
   { href: '/customer/invoices', label: 'Invoices' },
+  { href: '/customer/tickets', label: 'Support tickets' },
+  { href: '/customer/announcements', label: 'Announcements' },
+  { href: '/customer/profile', label: 'Profile & wallet' },
 ];
 
 export function Shell({

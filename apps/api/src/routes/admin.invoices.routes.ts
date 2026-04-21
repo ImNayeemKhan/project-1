@@ -5,7 +5,9 @@ import { validate } from '../middleware/validate';
 import { requireAuth, requireRole } from '../middleware/auth';
 import { Invoice } from '../models/Invoice';
 import { billingService } from '../services/billing.service';
-import { NotFound } from '../utils/errors';
+import { BILLING_LOCK_KEY } from '../jobs/billing.job';
+import { withLock } from '../utils/lock';
+import { Conflict, NotFound } from '../utils/errors';
 
 export const adminInvoicesRouter = Router();
 adminInvoicesRouter.use(requireAuth, requireRole('admin', 'reseller'));
@@ -49,7 +51,12 @@ adminInvoicesRouter.post(
 adminInvoicesRouter.post(
   '/run-billing',
   asyncHandler(async (_req, res) => {
-    const result = await billingService.runDailyBilling();
+    // Reuse the same distributed lock as the cron job so that a manual admin
+    // trigger cannot race the cron and produce duplicate invoices.
+    const result = await withLock(BILLING_LOCK_KEY, 600, () =>
+      billingService.runDailyBilling()
+    );
+    if (result === null) throw Conflict('Billing run already in progress');
     res.json(result);
   })
 );
