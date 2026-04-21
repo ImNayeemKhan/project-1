@@ -80,7 +80,13 @@ paymentsRouter.all(
     }
 
     const executed = await bkashService.executePayment(paymentId, payment.amount);
-    payment.status = executed.status === 'Completed' ? 'success' : 'failed';
+    // Amount sanity-check: the gateway's executed.amount MUST match what we
+    // stored on the pending Payment, otherwise a partial / tampered / replayed
+    // execute response could settle an invoice for less than owed. Mock mode
+    // always echoes expectedAmount, so this is a no-op there.
+    const amountMismatch =
+      executed.status === 'Completed' && Number(executed.amount) !== Number(payment.amount);
+    payment.status = executed.status === 'Completed' && !amountMismatch ? 'success' : 'failed';
     payment.gatewayTxnId = executed.trxId;
     payment.processedAt = new Date();
     payment.rawPayload = executed;

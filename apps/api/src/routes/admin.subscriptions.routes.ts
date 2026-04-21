@@ -102,13 +102,24 @@ adminSubscriptionsRouter.post(
     const router = (sub.router as any) ?? null;
 
     if (req.body.action === 'suspend') {
+      // Only active subs can be suspended. Suspending a cancelled sub would
+      // hit the router with a PPPoE name that's already been removed (errors
+      // on a real router, silently succeeds in dry-run mode) and then stamp
+      // a semantically incorrect 'suspended' state over a terminal 'cancelled'.
       if (sub.status === 'suspended') throw BadRequest('Already suspended');
+      if (sub.status === 'cancelled') throw BadRequest('Cannot suspend a cancelled subscription');
+      if (sub.status === 'pending') throw BadRequest('Cannot suspend a pending subscription');
       await mikrotikService.setPppoeEnabled(sub.pppoeUsername, false, router);
       await radiusService.sendCoA({ username: sub.pppoeUsername, action: 'disconnect' }).catch(() => undefined);
       sub.status = 'suspended';
       sub.suspendedAt = new Date();
     } else if (req.body.action === 'resume') {
+      // Resume is only valid from 'suspended'. From 'cancelled' the PPPoE user
+      // is gone and re-enabling would silently "succeed" in dry-run with no
+      // account actually present on the router. From 'pending' the sub was
+      // never provisioned in the first place.
       if (sub.status === 'active') throw BadRequest('Already active');
+      if (sub.status !== 'suspended') throw BadRequest('Can only resume a suspended subscription');
       await mikrotikService.setPppoeEnabled(sub.pppoeUsername, true, router);
       sub.status = 'active';
       sub.suspendedAt = undefined;

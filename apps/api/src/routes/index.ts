@@ -10,6 +10,7 @@ import { adminTicketsRouter } from './admin.tickets.routes';
 import { adminLeadsRouter } from './admin.leads.routes';
 import { adminAnnouncementsRouter } from './admin.announcements.routes';
 import { adminReportsRouter } from './admin.reports.routes';
+import { adminBiRouter } from './admin.bi.routes';
 import { adminWalletRouter } from './admin.wallet.routes';
 import { adminFtpRouter } from './admin.ftp.routes';
 import { adminAddonsRouter } from './admin.addons.routes';
@@ -38,6 +39,7 @@ export function buildApiRouter(limiters: RateLimiters) {
   apiRouter.use('/admin/leads', adminLeadsRouter);
   apiRouter.use('/admin/announcements', adminAnnouncementsRouter);
   apiRouter.use('/admin/reports', adminReportsRouter);
+  apiRouter.use('/admin/bi', adminBiRouter);
   apiRouter.use('/admin/wallet', adminWalletRouter);
   apiRouter.use('/admin/ftp-servers', adminFtpRouter);
   apiRouter.use('/admin/addons', adminAddonsRouter);

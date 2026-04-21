@@ -12,6 +12,7 @@ interface NavItem {
 
 const adminNav: NavItem[] = [
   { href: '/admin', label: 'Dashboard' },
+  { href: '/admin/bi', label: 'Business intelligence' },
   { href: '/admin/customers', label: 'Customers' },
   { href: '/admin/subscriptions', label: 'Subscriptions' },
   { href: '/admin/invoices', label: 'Invoices' },

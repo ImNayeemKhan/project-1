@@ -132,15 +132,24 @@ export const billingService = {
     const router = sub.router ? await RouterModel.findById(sub.router) : null;
 
     if (sub.status === 'suspended') {
+      // Only flip the subscription back to 'active' if we actually succeeded
+      // in re-enabling the PPPoE user on the router. Otherwise the customer
+      // would appear active in the database while their line is still disabled
+      // on the router — paying for service they can't use. Leave it suspended,
+      // log, and let the next payment callback / admin action retry the
+      // provisioning.
       try {
         await mikrotikService.setPppoeEnabled(sub.pppoeUsername, true, router);
         await radiusService.sendCoA({ username: sub.pppoeUsername, action: 'reauthorize' }).catch(() => undefined);
+        sub.status = 'active';
+        sub.suspendedAt = undefined;
+        await sub.save();
       } catch (err) {
-        logger.error('Failed to re-enable PPPoE on payment', { subId: String(sub._id), err: (err as Error).message });
+        logger.error('Failed to re-enable PPPoE on payment; leaving subscription suspended for retry', {
+          subId: String(sub._id),
+          err: (err as Error).message,
+        });
       }
-      sub.status = 'active';
-      sub.suspendedAt = undefined;
-      await sub.save();
     }
   },
 
