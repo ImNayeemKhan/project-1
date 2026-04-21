@@ -57,7 +57,6 @@ export default function AdminDashboard() {
   });
 
   const monthlyTrend = useMemo(() => data?.revenue.monthly.map((m) => m.total) ?? [], [data]);
-  const dailyTrend = useMemo(() => data?.revenue.daily.map((d) => d.total) ?? [], [data]);
 
   const mom = useMemo(() => {
     const m = data?.revenue.monthly ?? [];
@@ -72,7 +71,7 @@ export default function AdminDashboard() {
     () => data?.ar.aging.reduce((s, b) => s + b.total, 0) ?? 0,
     [data]
   );
-  const overdueTenPlus = useMemo(
+  const overdueThirtyPlus = useMemo(
     () =>
       data?.ar.aging
         .filter((b) => b.bucket !== '0-30' && b.bucket !== '0')
@@ -142,14 +141,13 @@ export default function AdminDashboard() {
               ? { direction: 'down', label: `${data.noc.suspendedSubs} suspended` }
               : { direction: 'flat', label: '0 suspended' }
           }
-          sparkline={dailyTrend}
         />
         <KPI
           label="AR outstanding"
           value={`৳${fmt(arOutstanding)}`}
           delta={
-            overdueTenPlus > 0
-              ? { direction: 'down', label: `${overdueTenPlus} overdue` }
+            overdueThirtyPlus > 0
+              ? { direction: 'down', label: `${overdueThirtyPlus} overdue` }
               : { direction: 'flat', label: 'all current' }
           }
         />
@@ -186,13 +184,13 @@ export default function AdminDashboard() {
             action="Review suspended"
           />
           <LiveOpsCard
-            tone={overdueTenPlus > 0 ? 'danger' : 'neutral'}
-            title="Invoices >10 days overdue"
-            value={fmt(overdueTenPlus)}
+            tone={overdueThirtyPlus > 0 ? 'danger' : 'neutral'}
+            title="Invoices >30 days overdue"
+            value={fmt(overdueThirtyPlus)}
             body={
-              overdueTenPlus > 0
-                ? 'Past the grace window — flagged for collections follow-up.'
-                : 'No invoices past the 10-day grace window.'
+              overdueThirtyPlus > 0
+                ? 'Past the 30-day aging window — flagged for collections follow-up.'
+                : 'No invoices past the 30-day aging window.'
             }
             href="/admin/invoices?status=overdue"
             action="Open aging report"
