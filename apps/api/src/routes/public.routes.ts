@@ -34,7 +34,7 @@ publicRouter.get(
   '/ftp-servers',
   asyncHandler(async (req, res) => {
     const category = (req.query.category as string | undefined)?.toLowerCase();
-    const filter: Record<string, unknown> = { isActive: true };
+    const filter: Record<string, unknown> = { isActive: true, accessLevel: 'public' };
     if (category && ['entertainment', 'carrier', 'business', 'partnership'].includes(category)) {
       filter.category = category;
     }

@@ -27,7 +27,15 @@ export async function withLock<T>(
   try {
     return await fn();
   } finally {
-    const current = await redis.get(key);
-    if (current === token) await redis.del(key);
+    // Atomic check-and-delete: only release the lock if we still own it.
+    // A non-atomic GET + DEL would race with lock expiry and could delete
+    // a lock that another instance has just acquired.
+    const UNLOCK_SCRIPT =
+      "if redis.call('get', KEYS[1]) == ARGV[1] then return redis.call('del', KEYS[1]) else return 0 end";
+    try {
+      await redis.eval(UNLOCK_SCRIPT, 1, key, token);
+    } catch (err) {
+      logger.warn('Lock release failed', { key, err: (err as Error).message });
+    }
   }
 }

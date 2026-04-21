@@ -30,12 +30,29 @@ adminWalletRouter.post(
   '/:userId/adjust',
   validate(adjustSchema),
   asyncHandler(async (req, res) => {
-    const user = await User.findById(req.params.userId);
-    if (!user) throw NotFound('User not found');
     const { type, amount, note } = req.body as z.infer<typeof adjustSchema>;
-    if (type === 'debit' && user.walletBalance < amount) throw BadRequest('Insufficient wallet balance');
-    user.walletBalance = type === 'credit' ? user.walletBalance + amount : user.walletBalance - amount;
-    await user.save();
+    const delta = type === 'credit' ? amount : -amount;
+
+    // Atomic update with a balance precondition on debits. Prevents a classic
+    // read-modify-write race that would allow two concurrent debits to both
+    // pass the sufficiency check and double-spend the wallet.
+    const filter =
+      type === 'debit'
+        ? { _id: req.params.userId, walletBalance: { $gte: amount } }
+        : { _id: req.params.userId };
+
+    const user = await User.findOneAndUpdate(
+      filter,
+      { $inc: { walletBalance: delta } },
+      { new: true }
+    ).select('name email walletBalance');
+
+    if (!user) {
+      const exists = await User.exists({ _id: req.params.userId });
+      if (!exists) throw NotFound('User not found');
+      throw BadRequest('Insufficient wallet balance');
+    }
+
     const txn = await Transaction.create({
       user: user._id,
       type,
