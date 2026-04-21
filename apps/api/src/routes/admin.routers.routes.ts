@@ -35,9 +35,14 @@ adminRoutersRouter.post(
   '/',
   validate(upsertSchema),
   asyncHandler(async (req, res) => {
+    // Do not let the plaintext `password` field reach `RouterModel.create()`;
+    // today Mongoose's default strict mode silently drops it, but a future
+    // schema change that added a `password` field (or a flip to non-strict
+    // mode) would persist plaintext credentials.
+    const { password, ...rest } = req.body as Record<string, unknown> & { password: string };
     const created = await RouterModel.create({
-      ...req.body,
-      passwordEncrypted: encrypt(req.body.password),
+      ...rest,
+      passwordEncrypted: encrypt(password),
     });
     // Strip the encrypted credential before returning the document to the client.
     const router = await RouterModel.findById(created._id).select('-passwordEncrypted');

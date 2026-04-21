@@ -1,6 +1,6 @@
 import { Router } from 'express';
 import { z } from 'zod';
-import { addMonths } from 'date-fns';
+import { addMonths, startOfDay } from 'date-fns';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validate } from '../middleware/validate';
 import { requireAuth, requireRole } from '../middleware/auth';
@@ -58,7 +58,13 @@ adminSubscriptionsRouter.post(
     if (!pkg) throw NotFound('Package not found');
     if (routerId && !router) throw NotFound('Router not found');
 
+    // `activatedAt` keeps full timestamp precision (useful for audit), but
+    // `nextBillingDate` is normalized to midnight so the daily billing cron
+    // (which compares against startOfDay(now)) fires on the target day instead
+    // of the day after. Otherwise a sub created at 14:30 would consistently
+    // invoice one day late every month.
     const start = startDate ? new Date(startDate) : new Date();
+    const nextBillingDate = addMonths(startOfDay(start), 1);
     const sub = await Subscription.create({
       customer: customer._id,
       package: pkg._id,
@@ -67,7 +73,7 @@ adminSubscriptionsRouter.post(
       pppoePasswordEncrypted: encrypt(pppoePassword),
       status: 'active',
       activatedAt: start,
-      nextBillingDate: addMonths(start, 1),
+      nextBillingDate,
     });
 
     // Provision on router (dry-run if no router/creds).

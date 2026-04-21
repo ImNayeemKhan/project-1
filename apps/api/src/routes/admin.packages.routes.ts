@@ -20,6 +20,7 @@ adminPackagesRouter.get(
 const upsertSchema = z.object({
   name: z.string().min(1),
   code: z.string().min(1),
+  category: z.enum(['personal', 'gaming', 'corporate']).optional(),
   tagline: z.string().optional(),
   description: z.string().optional(),
   imageUrl: z.string().url().optional(),
