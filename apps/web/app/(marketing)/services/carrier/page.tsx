@@ -2,9 +2,10 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { fetchFtpServers } from '@/lib/ftp';
 import { FtpCard } from '@/components/FtpCard';
+import { BRAND } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'Carrier services — ISP Platform',
+  title: `Carrier services — ${BRAND.name}`,
   description: 'Peering, IP transit, carrier exchange, and NTTN interconnect services.',
 };
 
@@ -58,8 +59,8 @@ export default async function CarrierServicesPage() {
       <div className="mt-12 rounded-2xl bg-slate-900 p-8 text-center text-white">
         <h3 className="text-xl font-semibold">Interested in peering?</h3>
         <p className="mt-2 text-sm text-slate-300">
-          Mail <a className="underline" href="mailto:peering@ispplatform.example">peering@ispplatform.example</a> with
-          your AS number and we&apos;ll reply within one business day.
+          Mail <a className="underline" href={BRAND.emailHref}>{BRAND.email}</a> with your AS number,
+          preferred handoff location and expected capacity — we&apos;ll reply within one business day.
         </p>
       </div>
     </div>

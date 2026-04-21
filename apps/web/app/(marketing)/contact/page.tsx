@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { BRAND } from '@/lib/brand';
 
 export default function ContactPage() {
   const [name, setName] = useState('');
@@ -41,7 +42,7 @@ export default function ContactPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-16">
-      <h1 className="text-4xl font-bold text-slate-900">Get connected</h1>
+      <h1 className="text-4xl font-bold text-slate-900">Get connected with {BRAND.shortName}</h1>
       <p className="mt-3 max-w-2xl text-slate-600">
         Drop your details and our sales team will reach out within one business day to confirm
         coverage, recommend a plan, and schedule installation.
@@ -105,18 +106,36 @@ export default function ContactPage() {
         <aside className="space-y-6">
           <div className="card">
             <h3 className="text-lg font-semibold text-slate-900">Talk to us</h3>
-            <dl className="mt-3 space-y-2 text-sm text-slate-600">
+            <dl className="mt-3 space-y-3 text-sm text-slate-600">
               <div>
                 <dt className="text-slate-500">Phone</dt>
-                <dd><a href="tel:+8809000000000">+880 9000 000 000</a></dd>
+                <dd className="space-y-0.5">
+                  {BRAND.phones.map((p) => (
+                    <div key={p.value}>
+                      <a href={p.href} className="hover:text-brand-600">
+                        {p.value}
+                      </a>
+                    </div>
+                  ))}
+                </dd>
               </div>
               <div>
                 <dt className="text-slate-500">Email</dt>
-                <dd><a href="mailto:hello@ispplatform.example">hello@ispplatform.example</a></dd>
+                <dd>
+                  <a href={BRAND.emailHref} className="hover:text-brand-600">
+                    {BRAND.email}
+                  </a>
+                </dd>
               </div>
               <div>
-                <dt className="text-slate-500">Office</dt>
-                <dd>House 12, Road 5, Dhanmondi, Dhaka</dd>
+                <dt className="text-slate-500">Head office</dt>
+                <dd>
+                  {BRAND.address.line1}
+                  <br />
+                  {BRAND.address.line2}
+                  <br />
+                  {BRAND.address.line3}
+                </dd>
               </div>
             </dl>
           </div>

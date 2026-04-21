@@ -2,9 +2,10 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { fetchFtpServers } from '@/lib/ftp';
 import { FtpCard } from '@/components/FtpCard';
+import { BRAND } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'Business services — ISP Platform',
+  title: `Business services — ${BRAND.name}`,
   description:
     'Symmetrical fiber, business-grade SLA, managed routers, file vault and automated backup for SMBs and enterprises.',
 };

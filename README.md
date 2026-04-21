@@ -1,6 +1,7 @@
-# ISP Platform
+# Desh Communications — ISP platform
 
-A production-ready starter for running a small-to-mid ISP:
+A production-ready ISP platform for [Desh Communications](https://deshcommunications.net/) —
+branding, pricing, and content mirror the live site; code is the reference implementation:
 
 - **Admin dashboard** — customers, packages, subscriptions, invoices, MikroTik routers
 - **Customer portal** — view plan, pay invoices

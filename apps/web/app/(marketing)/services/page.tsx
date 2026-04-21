@@ -1,9 +1,10 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
 import { fetchAddons } from '@/lib/ftp';
+import { BRAND } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'Services — ISP Platform',
+  title: `Services — ${BRAND.name}`,
   description:
     'FTP / BDIX mirror servers, carrier peering, business file vault, and partner CDN ingest — plus service add-ons like static IP, IPTV, and cloud backup.',
 };

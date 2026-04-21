@@ -2,9 +2,10 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { fetchFtpServers } from '@/lib/ftp';
 import { FtpCard } from '@/components/FtpCard';
+import { BRAND } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'Partnership — ISP Platform',
+  title: `Partnership — ${BRAND.name}`,
   description:
     'Content distribution, CDN ingest, and co-marketing partnerships with OTT platforms, publishers, and educational institutions.',
 };
@@ -60,7 +61,7 @@ export default async function PartnershipServicesPage() {
       <div className="mt-12 rounded-2xl bg-slate-900 p-8 text-center text-white">
         <h3 className="text-xl font-semibold">Let&apos;s build something together</h3>
         <p className="mt-2 text-sm text-slate-300">
-          Email <a className="underline" href="mailto:partners@ispplatform.example">partners@ispplatform.example</a>
+          Email <a className="underline" href={BRAND.emailHref}>{BRAND.email}</a>
           {' '}with a short description of what you&apos;d like to distribute — we&apos;ll route you to the right team.
         </p>
       </div>

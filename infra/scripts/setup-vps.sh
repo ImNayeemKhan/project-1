@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # =============================================================================
-# ISP Platform — fresh Ubuntu VPS bootstrap.
+# Desh Communications ISP platform — fresh Ubuntu VPS bootstrap.
 # Tested on Ubuntu 22.04 and 24.04. Run ONCE as root on a brand-new server.
 #
 # Usage:

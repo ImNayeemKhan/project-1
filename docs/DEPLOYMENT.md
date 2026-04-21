@@ -1,7 +1,8 @@
 # Deployment Guide — Fresh Ubuntu VPS
 
 This guide takes a brand-new Ubuntu 22.04 / 24.04 VPS (DigitalOcean, Contabo, Hetzner, etc.)
-to a running ISP Platform accessible via the server's public IP, then upgraded to HTTPS on a real domain.
+to a running Desh Communications platform accessible via the server's public IP, then upgraded
+to HTTPS on a real domain (e.g. `deshcommunications.net`).
 
 Assumes you have:
 - Root SSH access to the VPS with your SSH key.

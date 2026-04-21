@@ -2,9 +2,10 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 import { fetchFtpServers } from '@/lib/ftp';
 import { FtpCard } from '@/components/FtpCard';
+import { BRAND } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'Entertainment FTP — ISP Platform',
+  title: `Entertainment FTP — ${BRAND.name}`,
   description: 'Local BDIX mirrors for movies, TV series, anime, games, and software.',
 };
 

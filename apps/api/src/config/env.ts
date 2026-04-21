@@ -4,7 +4,7 @@ import { z } from 'zod';
 const schema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   PORT: z.coerce.number().default(4000),
-  APP_NAME: z.string().default('ISP Platform'),
+  APP_NAME: z.string().default('Desh Communications'),
   CORS_ORIGIN: z.string().default('http://localhost:3000'),
 
   MONGODB_URI: z.string().min(1),

@@ -1,8 +1,9 @@
 import type { Metadata } from 'next';
+import { BRAND } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'About — ISP Platform',
-  description: 'Who we are, what we run, and how we look after our customers.',
+  title: `About — ${BRAND.name}`,
+  description: `About ${BRAND.name} — our mission, vision, network, and coverage.`,
 };
 
 const TEAM_IMG =
@@ -14,12 +15,10 @@ const NOC_IMG =
 export default function AboutPage() {
   return (
     <div className="mx-auto max-w-5xl px-6 py-16">
-      <h1 className="text-4xl font-bold text-slate-900">About us</h1>
-      <p className="mt-4 max-w-3xl text-lg text-slate-600">
-        We&apos;re a Dhaka-based fiber ISP, built by network engineers who were tired of dropped
-        calls, throttled streams, and support teams that never follow through. We run a modern
-        MikroTik + RADIUS core, a 24/7 NOC, and a customer portal our team actually uses.
-      </p>
+      <h1 className="text-4xl font-bold text-slate-900">
+        {BRAND.name} — The Ultimate Solutions of Network Services
+      </h1>
+      <p className="mt-4 max-w-3xl text-lg text-slate-600">{BRAND.about}</p>
 
       <div className="mt-10 overflow-hidden rounded-xl shadow-sm">
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -30,19 +29,16 @@ export default function AboutPage() {
         <div>
           <h2 className="text-2xl font-semibold text-slate-900">Our mission</h2>
           <p className="mt-3 text-slate-600">
-            To deliver honest, business-grade connectivity to every neighbourhood — with
-            transparent billing, predictable speeds, and support that treats every customer as a
-            long-term partner.
+            To deliver reliable, high-speed internet connectivity to individuals, businesses, and
+            communities — empowering them to connect, communicate, and thrive in the digital age.
           </p>
         </div>
         <div>
-          <h2 className="text-2xl font-semibold text-slate-900">What we run</h2>
-          <ul className="mt-3 space-y-2 text-slate-600">
-            <li>• Carrier-grade fiber core with redundant upstream</li>
-            <li>• MikroTik RouterOS PPPoE with RADIUS AAA</li>
-            <li>• 24/7 NOC monitoring, PagerDuty-style escalations</li>
-            <li>• Automated billing, bKash online payments, and self-service portal</li>
-          </ul>
+          <h2 className="text-2xl font-semibold text-slate-900">Our vision</h2>
+          <p className="mt-3 text-slate-600">
+            To revolutionize connectivity in Bangladesh by making high-speed internet accessible to
+            every corner of the country — reliable, affordable, and universal.
+          </p>
         </div>
       </div>
 
@@ -51,12 +47,36 @@ export default function AboutPage() {
         <img src={NOC_IMG} alt="Operations centre monitors" className="h-72 w-full object-cover" />
       </div>
 
-      <div className="mt-14">
-        <h2 className="text-2xl font-semibold text-slate-900">Coverage</h2>
+      <div className="mt-14 grid gap-10 md:grid-cols-2">
+        <div>
+          <h2 className="text-2xl font-semibold text-slate-900">What we run</h2>
+          <ul className="mt-3 space-y-2 text-slate-600">
+            <li>• Carrier-grade fiber core with redundant upstream providers</li>
+            <li>• BDIX peering with local entertainment and cache mirrors</li>
+            <li>• MikroTik RouterOS PPPoE with RADIUS AAA</li>
+            <li>• 24/7 NOC monitoring with tiered escalations</li>
+            <li>• Automated billing, bKash online payments, and self-service portal</li>
+          </ul>
+        </div>
+        <div>
+          <h2 className="text-2xl font-semibold text-slate-900">Coverage</h2>
+          <p className="mt-3 text-slate-600">
+            Head-end at {BRAND.address.line1}, {BRAND.address.line2}, {BRAND.address.line3}.
+            We operate across Mohammadpur, Dhanmondi, Mirpur, Adabor, and Lalmatia — expanding
+            neighbourhood by neighbourhood. Drop us your address on the contact page and
+            we&apos;ll confirm if we can light up your block.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-14 rounded-xl bg-slate-50 p-8">
+        <h2 className="text-2xl font-semibold text-slate-900">Talk to us</h2>
         <p className="mt-3 text-slate-600">
-          We currently operate in Dhanmondi, Uttara, Gulshan, and Mirpur. Expanding neighbourhood
-          by neighbourhood — drop us your address on the contact page and we&apos;ll confirm if we
-          can light up your block.
+          Call {BRAND.primaryPhone} or email{' '}
+          <a className="text-brand-600 hover:underline" href={BRAND.emailHref}>
+            {BRAND.email}
+          </a>
+          . {BRAND.supportHours}.
         </p>
       </div>
     </div>

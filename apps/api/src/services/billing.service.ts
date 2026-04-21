@@ -29,7 +29,12 @@ export const billingService = {
         const pkg = sub.package as unknown as { monthlyPrice: number };
         const periodStart = sub.nextBillingDate;
         const periodEnd = addMonths(periodStart, 1);
-        const dueDate = addDays(periodStart, env.BILLING_GRACE_DAYS);
+        // Grace period must be measured from the later of today and periodStart.
+        // If the cron catches up after server downtime (periodStart < today),
+        // anchoring on periodStart would produce a dueDate already in the past,
+        // causing the freshly-created invoice to be suspended in the same run.
+        const graceAnchor = today > periodStart ? today : periodStart;
+        const dueDate = addDays(graceAnchor, env.BILLING_GRACE_DAYS);
 
         await Invoice.create({
           invoiceNo: generateInvoiceNo(periodStart),

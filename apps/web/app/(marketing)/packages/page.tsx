@@ -1,9 +1,12 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { BRAND } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'Packages — ISP Platform',
-  description: 'Home and business fiber internet packages. Transparent pricing, no hidden fees.',
+  title: `Packages — ${BRAND.name}`,
+  description:
+    `${BRAND.name} personal, gaming, and corporate fiber packages. Transparent pricing ` +
+    '(including 5% VAT), unlimited BDIX, and free installation on select plans.',
 };
 
 interface PackageRow {

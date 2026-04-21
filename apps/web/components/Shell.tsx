@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuth, Role } from '@/lib/auth';
+import { BRAND } from '@/lib/brand';
 
 interface NavItem {
   href: string;
@@ -65,7 +66,11 @@ export function Shell({
   return (
     <div className="flex min-h-screen">
       <aside className="flex w-60 flex-col border-r border-slate-200 bg-white">
-        <div className="px-5 py-4 text-lg font-semibold text-brand-600">ISP Platform</div>
+        <Link href="/" className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={BRAND.logoUrl} alt={`${BRAND.name} logo`} className="h-8 w-auto" />
+          <span className="sr-only">{BRAND.name}</span>
+        </Link>
         <nav className="flex-1 space-y-1 px-2 py-2">
           {nav.map((item) => {
             const active = pathname === item.href || pathname?.startsWith(item.href + '/');

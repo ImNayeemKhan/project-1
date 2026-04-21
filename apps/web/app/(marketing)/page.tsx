@@ -1,10 +1,12 @@
 import Link from 'next/link';
 import type { Metadata } from 'next';
+import { BRAND } from '@/lib/brand';
 
 export const metadata: Metadata = {
-  title: 'ISP Platform — Fiber internet for homes and businesses',
+  title: `${BRAND.name} — Fiber internet for homes, gamers, and corporates`,
   description:
-    'High-speed fiber internet with 24/7 local support, online billing, bKash payment, and zero hidden fees.',
+    `${BRAND.name} delivers fiber-to-the-home, gaming, and corporate internet across Dhaka. ` +
+    '24/7 local support, online bKash payment, BDIX entertainment mirrors, and transparent pricing.',
 };
 
 const HERO_IMG =
@@ -75,11 +77,12 @@ export default async function HomePage() {
             Fiber-grade internet
           </span>
           <h1 className="mt-4 max-w-3xl text-4xl font-bold leading-tight text-white md:text-6xl">
-            Fast, reliable internet — with a local team that actually picks up the phone.
+            Internet deals — backed by 99.9% reliability.
           </h1>
           <p className="mt-5 max-w-2xl text-lg text-slate-200">
-            Home, office, and enterprise fiber plans in Dhaka. Transparent pricing, online bKash
-            payment, and real human support when you need it.
+            Do more of what you love and keep the whole house connected. {BRAND.name} delivers
+            fiber-to-the-home, gaming, and corporate plans across Dhaka with 24/7 local support
+            and online bKash payment.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="/packages" className="btn-primary">
@@ -93,10 +96,10 @@ export default async function HomePage() {
             </Link>
           </div>
           <div className="mt-10 grid max-w-3xl grid-cols-2 gap-6 text-white md:grid-cols-4">
-            <Stat value="10k+" label="Customers" />
             <Stat value="99.9%" label="Uptime SLA" />
-            <Stat value="24/7" label="Local support" />
-            <Stat value="< 4h" label="Avg. install" />
+            <Stat value="24/7" label="NOC support" />
+            <Stat value="Fiber" label="FTTH core" />
+            <Stat value="BDIX" label="Entertainment mirrors" />
           </div>
         </div>
       </section>

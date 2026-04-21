@@ -14,7 +14,9 @@ adminRoutersRouter.use(requireAuth, requireRole('admin'));
 adminRoutersRouter.get(
   '/',
   asyncHandler(async (_req, res) => {
-    const items = await RouterModel.find().sort({ createdAt: -1 });
+    // Never ship encrypted router credentials to the browser — a compromised admin session
+    // (XSS, token theft) would otherwise expose every router's API password.
+    const items = await RouterModel.find().select('-passwordEncrypted').sort({ createdAt: -1 });
     res.json({ items });
   })
 );
@@ -33,10 +35,12 @@ adminRoutersRouter.post(
   '/',
   validate(upsertSchema),
   asyncHandler(async (req, res) => {
-    const router = await RouterModel.create({
+    const created = await RouterModel.create({
       ...req.body,
       passwordEncrypted: encrypt(req.body.password),
     });
+    // Strip the encrypted credential before returning the document to the client.
+    const router = await RouterModel.findById(created._id).select('-passwordEncrypted');
     res.status(201).json({ router });
   })
 );
@@ -50,7 +54,9 @@ adminRoutersRouter.patch(
       update.passwordEncrypted = encrypt(update.password);
       delete update.password;
     }
-    const router = await RouterModel.findByIdAndUpdate(req.params.id, update, { new: true });
+    const router = await RouterModel.findByIdAndUpdate(req.params.id, update, { new: true }).select(
+      '-passwordEncrypted'
+    );
     if (!router) throw NotFound('Router not found');
     res.json({ router });
   })

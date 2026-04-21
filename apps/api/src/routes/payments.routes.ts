@@ -51,7 +51,11 @@ paymentsRouter.all(
   '/bkash/callback',
   asyncHandler(async (req, res) => {
     const paymentId = (req.query.paymentID as string) || (req.body?.paymentID as string);
-    const status = (req.query.status as string) || (req.body?.status as string) || 'success';
+    // Absence of status must be treated as failure — never defaulted to success — so an
+    // unauthenticated GET to /api/payments/bkash/callback?paymentID=<id> can't forge a
+    // completion. In production bKash always posts `status`; in mock mode our own redirect
+    // URL appends `status=success` explicitly on happy path.
+    const status = (req.query.status as string) || (req.body?.status as string) || '';
     if (!paymentId) throw BadRequest('Missing paymentID');
 
     const payment = await Payment.findOne({ gatewayPaymentId: paymentId });
