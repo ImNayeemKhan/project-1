@@ -27,6 +27,11 @@ const adminNav: NavItem[] = [
   { href: '/admin/addons', label: 'Add-ons' },
   { href: '/admin/reports', label: 'Reports' },
   { href: '/admin/webhooks', label: 'Webhooks' },
+  { href: '/admin/feature-flags', label: 'Feature flags' },
+  { href: '/admin/bulk-import', label: 'Bulk import' },
+  { href: '/admin/audit-log', label: 'Audit log' },
+  { href: '/admin/health', label: 'Health' },
+  { href: '/admin/roles', label: 'Roles' },
 ];
 
 const customerNav: NavItem[] = [
