@@ -165,18 +165,38 @@ export const billingService = {
    * if the subscription was suspended, and sends a RADIUS CoA-reauthorize.
    */
   async markInvoicePaid(invoiceId: string, paymentRef: string): Promise<void> {
-    const invoice = await Invoice.findById(invoiceId);
-    if (!invoice) throw new Error('Invoice not found');
-    // Already-terminal statuses: paid (idempotent no-op) and void
-    // (administratively cancelled — must NOT reactivate a cancelled service).
-    if (invoice.status === 'paid' || invoice.status === 'void') return;
-
-    invoice.status = 'paid';
-    invoice.paidAt = new Date();
-    invoice.paymentRef = paymentRef;
-    // Reset dunning so a re-billed future period starts from a clean slate.
-    invoice.remindersSent = [];
-    await invoice.save();
+    // Atomic status transition. Two concurrent payment callbacks for the
+    // same invoice (e.g. a double-submitted bKash session that somehow
+    // bypassed the /bkash/init in-flight guard) must NOT both proceed past
+    // this check: the downstream side-effects (plan-change finalize,
+    // provisioning calls to MikroTik, webhook fan-out) are not idempotent
+    // on the router side and would re-provision or double-notify.
+    //
+    // `findOneAndUpdate` with a status precondition serializes the
+    // transition at the database layer — exactly one caller wins and sees
+    // the updated document; every other concurrent caller sees `null` and
+    // returns without doing anything.
+    const invoice = await Invoice.findOneAndUpdate(
+      { _id: invoiceId, status: { $nin: ['paid', 'void'] } },
+      {
+        $set: {
+          status: 'paid',
+          paidAt: new Date(),
+          paymentRef,
+          // Reset dunning so a re-billed future period starts from a clean slate.
+          remindersSent: [],
+        },
+      },
+      { new: true }
+    );
+    if (!invoice) {
+      // Either the invoice doesn't exist or it's already in a terminal
+      // state (paid / void). Callers treat both as a no-op; distinguish
+      // only if needed for logging.
+      const exists = await Invoice.exists({ _id: invoiceId });
+      if (!exists) throw new Error('Invoice not found');
+      return;
+    }
 
     // Finalize a queued plan change. If this invoice covers a pro-rated
     // upgrade (planChangeService set pendingPackage + pendingPackageEffectiveAt

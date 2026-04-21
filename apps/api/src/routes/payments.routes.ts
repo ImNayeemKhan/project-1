@@ -9,7 +9,14 @@ import { Payment } from '../models/Payment';
 import { bkashService } from '../services/bkash.service';
 import { billingService } from '../services/billing.service';
 import { env } from '../config/env';
-import { BadRequest, NotFound, Unauthorized } from '../utils/errors';
+import { BadRequest, Conflict, NotFound, Unauthorized } from '../utils/errors';
+
+// If a previous /bkash/init for the same invoice is still pending, we treat
+// the checkout as in-flight for this long before letting a retry start a
+// fresh session. Covers the common "user clicked Pay twice / hit refresh"
+// case without stranding them behind a permanently-stuck payment row if
+// bKash never actually completes the first one.
+const PENDING_PAYMENT_REUSE_WINDOW_MS = 10 * 60 * 1000;
 
 // Deterministic HMAC binding a bKash callback URL to a specific paymentID.
 // Prevents an unauthenticated attacker who guesses/enumerates a pending
@@ -48,6 +55,21 @@ paymentsRouter.post(
     // money that then can't be reconciled against any open obligation.
     if (invoice.status === 'paid') throw BadRequest('Invoice already paid');
     if (invoice.status === 'void') throw BadRequest('Invoice has been voided');
+
+    // Double-charge guard. Without this, a customer clicking "Pay" twice (or
+    // retrying after a network blip) would create two independent bKash
+    // sessions with different gatewayPaymentId values. Both can complete,
+    // charging the customer twice while only one settles the invoice.
+    // A recent pending payment is treated as in-flight; older ones are
+    // considered abandoned and a fresh session is allowed to start.
+    const existingPending = await Payment.findOne({
+      invoice: invoice._id,
+      status: 'pending',
+      createdAt: { $gt: new Date(Date.now() - PENDING_PAYMENT_REUSE_WINDOW_MS) },
+    }).sort({ createdAt: -1 });
+    if (existingPending) {
+      throw Conflict('A payment is already in progress for this invoice. Please complete the bKash checkout from the previous attempt, or try again in a few minutes.');
+    }
 
     const result = await bkashService.createPayment({
       amount: invoice.amount,
