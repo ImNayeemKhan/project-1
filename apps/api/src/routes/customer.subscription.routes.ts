@@ -113,7 +113,11 @@ customerSubscriptionRouter.post(
 
     sub.pausedAt = now;
     sub.pauseEndsAt = new Date(now.getTime() + req.body.days * 86_400_000);
-    sub.pauseYearStartedAt = yearStart;
+    // Advance the rolling-year window if we just crossed its boundary. Keeping
+    // the stale yearStart here would cause `usedThisYear` to reset to 0 on
+    // every subsequent pause after the first year elapsed, bypassing the
+    // 30-day/yr cap indefinitely.
+    sub.pauseYearStartedAt = now.getTime() - yearStart.getTime() > oneYear ? now : yearStart;
     sub.pauseDaysUsedThisYear = usedThisYear + req.body.days;
     sub.status = 'suspended';
     await sub.save();
@@ -182,10 +186,13 @@ customerSubscriptionRouter.get(
     const sub = await ownSubscription(req.params.id, req.auth!.userId);
     if (!sub) throw NotFound('Subscription not found');
     if (!sub.referralCode) {
+      // base64url guarantees an alphabet of [A-Za-z0-9_-] with no padding,
+      // so slicing to 6 always yields exactly 6 characters. The previous
+      // approach stripped `+/=` after the fact, which produced <6-char codes
+      // ~17% of the time.
       sub.referralCode = crypto
-        .randomBytes(4)
-        .toString('base64')
-        .replace(/[+/=]/g, '')
+        .randomBytes(6)
+        .toString('base64url')
         .slice(0, 6)
         .toUpperCase();
       await sub.save();
