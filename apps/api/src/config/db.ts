@@ -9,16 +9,34 @@ import { logger } from './logger';
 interface MongoCache {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
+  listenersAttached: boolean;
 }
 const globalWithMongo = globalThis as unknown as { __mongoCache?: MongoCache };
-const cache: MongoCache = globalWithMongo.__mongoCache ?? { conn: null, promise: null };
+const cache: MongoCache =
+  globalWithMongo.__mongoCache ?? { conn: null, promise: null, listenersAttached: false };
 globalWithMongo.__mongoCache = cache;
+
+// Mongoose's default connection is a singleton EventEmitter that survives
+// `connect`/`disconnect` cycles, so connection listeners must be attached
+// exactly once for the lifetime of the process — otherwise every reconnect
+// layers duplicate handlers and we eventually hit MaxListenersExceededWarning.
+function attachConnectionListeners(): void {
+  if (cache.listenersAttached) return;
+  cache.listenersAttached = true;
+  mongoose.connection.on('error', (err) => logger.error('MongoDB error', { err }));
+  mongoose.connection.on('disconnected', () => {
+    logger.warn('MongoDB disconnected');
+    cache.conn = null;
+    cache.promise = null;
+  });
+}
 
 export async function connectDB(): Promise<void> {
   if (cache.conn) return;
 
   if (!cache.promise) {
     mongoose.set('strictQuery', true);
+    attachConnectionListeners();
     cache.promise = mongoose
       .connect(env.MONGODB_URI, {
         serverSelectionTimeoutMS: 10000,
@@ -26,12 +44,6 @@ export async function connectDB(): Promise<void> {
       })
       .then((m) => {
         logger.info('MongoDB connected');
-        m.connection.on('error', (err) => logger.error('MongoDB error', { err }));
-        m.connection.on('disconnected', () => {
-          logger.warn('MongoDB disconnected');
-          cache.conn = null;
-          cache.promise = null;
-        });
         return m;
       })
       // If the initial connection fails (e.g. Atlas is briefly unreachable
