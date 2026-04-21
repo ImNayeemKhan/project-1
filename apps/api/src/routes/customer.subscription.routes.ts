@@ -13,6 +13,7 @@ import { mikrotikService } from '../services/mikrotik.service';
 import { radiusService } from '../services/radius.service';
 import { Router as RouterModel } from '../models/Router';
 import { emitWebhook } from '../services/webhook.service';
+import { escapeHtml } from '../utils/html';
 
 export const customerSubscriptionRouter = Router();
 customerSubscriptionRouter.use(requireAuth, requireRole('customer'));
@@ -244,8 +245,15 @@ customerSubscriptionRouter.get(
       phone?: string;
       address?: string;
     };
+    // All customer-controlled or DB-stored fields are run through escapeHtml
+    // before being interpolated into the raw HTML below. Without escaping a
+    // malicious `customer.name` like `<script>…</script>` would execute when
+    // an admin opens the print view.
+    const statusClass = ['paid', 'unpaid', 'overdue', 'void'].includes(invoice.status)
+      ? invoice.status
+      : 'unpaid';
     const html = `<!doctype html>
-<html><head><meta charset="utf-8"/><title>Invoice ${invoice.invoiceNo}</title>
+<html><head><meta charset="utf-8"/><title>Invoice ${escapeHtml(invoice.invoiceNo)}</title>
 <style>
 body { font: 14px/1.4 system-ui, sans-serif; color:#111; max-width:780px; margin:40px auto; padding:0 24px; }
 h1 { margin:0; font-size:28px; letter-spacing:-0.02em; }
@@ -269,24 +277,24 @@ th { background:#fafafa; font-size:12px; text-transform:uppercase; letter-spacin
   </div>
   <div style="text-align:right;">
     <div style="font-size:12px; color:#555;">Invoice</div>
-    <div style="font-size:20px; font-weight:700;">${invoice.invoiceNo}</div>
-    <div class="status ${invoice.status}">${invoice.status}</div>
+    <div style="font-size:20px; font-weight:700;">${escapeHtml(invoice.invoiceNo)}</div>
+    <div class="status ${statusClass}">${escapeHtml(invoice.status)}</div>
   </div>
 </div>
 <table>
   <tr><th>Billed to</th><th>Period</th><th>Due</th></tr>
   <tr>
-    <td>${customer.name}<br/><span class="meta">${customer.email ?? ''} · ${customer.phone ?? ''}</span></td>
-    <td>${invoice.periodStart.toDateString()} – ${invoice.periodEnd.toDateString()}</td>
-    <td>${invoice.dueDate.toDateString()}</td>
+    <td>${escapeHtml(customer.name)}<br/><span class="meta">${escapeHtml(customer.email ?? '')} · ${escapeHtml(customer.phone ?? '')}</span></td>
+    <td>${escapeHtml(invoice.periodStart.toDateString())} – ${escapeHtml(invoice.periodEnd.toDateString())}</td>
+    <td>${escapeHtml(invoice.dueDate.toDateString())}</td>
   </tr>
 </table>
 <table>
   <tr><th>Description</th><th style="text-align:right">Amount</th></tr>
-  <tr><td>Monthly internet subscription (PPPoE ${sub.pppoeUsername})</td><td style="text-align:right">৳${invoice.amount}</td></tr>
+  <tr><td>Monthly internet subscription (PPPoE ${escapeHtml(sub.pppoeUsername)})</td><td style="text-align:right">৳${escapeHtml(String(invoice.amount))}</td></tr>
 </table>
-<div class="total">Total: ৳${invoice.amount} ${invoice.currency}</div>
-${invoice.paidAt ? `<div class="meta" style="margin-top:12px;">Paid ${new Date(invoice.paidAt).toDateString()} · Ref ${invoice.paymentRef ?? ''}</div>` : ''}
+<div class="total">Total: ৳${escapeHtml(String(invoice.amount))} ${escapeHtml(invoice.currency)}</div>
+${invoice.paidAt ? `<div class="meta" style="margin-top:12px;">Paid ${escapeHtml(new Date(invoice.paidAt).toDateString())} · Ref ${escapeHtml(invoice.paymentRef ?? '')}</div>` : ''}
 <p class="meta" style="margin-top:40px; text-align:center;">Thank you for choosing Desh Communications.</p>
 <div class="no-print" style="text-align:center; margin-top:24px;">
   <button onclick="window.print()" style="padding:10px 20px; font-size:14px; border-radius:6px; border:1px solid #111; background:#111; color:#fff; cursor:pointer;">Print / Save as PDF</button>

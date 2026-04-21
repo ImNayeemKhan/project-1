@@ -22,6 +22,12 @@ export interface CreatePaymentArgs {
   currency?: string;
   invoiceId: string;
   payerReference?: string;
+  /**
+   * Optional HMAC signer used in mock mode. The caller (payments route) owns
+   * the secret so the callback can be verified there with a symmetric key.
+   * In live bKash mode this is ignored; bKash signs its own POSTs.
+   */
+  callbackSignature?: (paymentId: string) => string;
 }
 
 export interface CreatePaymentResult {
@@ -62,6 +68,12 @@ export const bkashService = {
       callback.searchParams.set('paymentID', paymentId);
       callback.searchParams.set('status', 'success');
       callback.searchParams.set('mock', '1');
+      // Bind the mock redirect URL to this specific paymentID via HMAC. Without
+      // it any unauthenticated GET to /bkash/callback?paymentID=…&status=success
+      // would settle the invoice.
+      if (args.callbackSignature) {
+        callback.searchParams.set('sig', args.callbackSignature(paymentId));
+      }
       logger.info('[bkash:mock] createPayment', { paymentId, amount: args.amount, invoiceId: args.invoiceId });
       return {
         paymentId,

@@ -82,49 +82,73 @@ export const dunningService = {
       // --- Auto-suspend after SUSPEND_AFTER_DAYS ---
       if (daysOverdue >= SUSPEND_AFTER_DAYS && !(inv.remindersSent ?? []).includes('SUSPENDED')) {
         const sub = await Subscription.findById(inv.subscription);
-        if (sub && sub.status === 'active') {
-          const router = sub.router ? await RouterModel.findById(sub.router) : null;
-          try {
-            await mikrotikService.setPppoeEnabled(sub.pppoeUsername, false, router);
-            await radiusService
-              .sendCoA({ username: sub.pppoeUsername, action: 'disconnect' })
-              .catch(() => undefined);
-            sub.status = 'suspended';
-            sub.suspendedAt = new Date();
-            await sub.save();
-
-            const customer = await User.findById(sub.customer).select('name email phone');
-            if (customer) {
-              const tmpl = templates.serviceSuspended({
-                name: customer.name,
-                invoiceNo: inv.invoiceNo,
-              });
-              await notifyCustomer(
-                { name: customer.name, email: customer.email, phone: customer.phone },
-                tmpl,
-                ['dunning', 'suspended']
-              );
-            }
-            await emitWebhook('subscription.suspended', {
-              subscriptionId: String(sub._id),
-              customerId: String(sub.customer),
-              invoiceId: String(inv._id),
-              reason: 'overdue',
-            }).catch(() => undefined);
-
-            suspended++;
-          } catch (err) {
-            logger.error('Auto-suspend failed', {
-              subId: String(sub._id),
-              err: (err as Error).message,
-            });
-            // Leave the bucket unmarked so the next run retries.
-            continue;
+        if (!sub) {
+          // No matching subscription — just flag the invoice overdue so
+          // the dashboard reflects reality; nothing to suspend.
+          if (inv.status === 'unpaid') {
+            inv.status = 'overdue';
+            await inv.save();
           }
+          continue;
         }
-        inv.remindersSent = [...(inv.remindersSent ?? []), 'SUSPENDED'];
-        if (inv.status === 'unpaid') inv.status = 'overdue';
-        await inv.save();
+
+        // Subscription already non-active (paused, suspended by billing,
+        // cancelled). Don't re-suspend, but *do* mark the invoice overdue
+        // and record SUSPENDED so we skip it on subsequent runs — otherwise
+        // the dunning sweep churns over it forever. This is the missing
+        // branch that caused dunning to mark invoices 'SUSPENDED' even
+        // when no suspension action was taken.
+        if (sub.status !== 'active') {
+          inv.remindersSent = [...(inv.remindersSent ?? []), 'SUSPENDED'];
+          if (inv.status === 'unpaid') inv.status = 'overdue';
+          await inv.save();
+          continue;
+        }
+
+        const router = sub.router ? await RouterModel.findById(sub.router) : null;
+        try {
+          await mikrotikService.setPppoeEnabled(sub.pppoeUsername, false, router);
+          await radiusService
+            .sendCoA({ username: sub.pppoeUsername, action: 'disconnect' })
+            .catch(() => undefined);
+          sub.status = 'suspended';
+          sub.suspendedAt = new Date();
+          await sub.save();
+
+          const customer = await User.findById(sub.customer).select('name email phone');
+          if (customer) {
+            const tmpl = templates.serviceSuspended({
+              name: customer.name,
+              invoiceNo: inv.invoiceNo,
+            });
+            await notifyCustomer(
+              { name: customer.name, email: customer.email, phone: customer.phone },
+              tmpl,
+              ['dunning', 'suspended']
+            );
+          }
+          await emitWebhook('subscription.suspended', {
+            subscriptionId: String(sub._id),
+            customerId: String(sub.customer),
+            invoiceId: String(inv._id),
+            reason: 'overdue',
+          }).catch(() => undefined);
+
+          suspended++;
+
+          // Mark SUSPENDED only on real success so the next run retries on
+          // failure instead of silently skipping.
+          inv.remindersSent = [...(inv.remindersSent ?? []), 'SUSPENDED'];
+          if (inv.status === 'unpaid') inv.status = 'overdue';
+          await inv.save();
+        } catch (err) {
+          logger.error('Auto-suspend failed', {
+            subId: String(sub._id),
+            err: (err as Error).message,
+          });
+          // Leave the bucket unmarked so the next run retries.
+          continue;
+        }
       }
     }
 

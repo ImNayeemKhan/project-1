@@ -1,4 +1,5 @@
 import { Router, RequestHandler } from 'express';
+import crypto from 'crypto';
 import { z } from 'zod';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validate } from '../middleware/validate';
@@ -7,7 +8,28 @@ import { Invoice } from '../models/Invoice';
 import { Payment } from '../models/Payment';
 import { bkashService } from '../services/bkash.service';
 import { billingService } from '../services/billing.service';
-import { BadRequest, NotFound } from '../utils/errors';
+import { env } from '../config/env';
+import { BadRequest, NotFound, Unauthorized } from '../utils/errors';
+
+// Deterministic HMAC binding a bKash callback URL to a specific paymentID.
+// Prevents an unauthenticated attacker who guesses/enumerates a pending
+// `gatewayPaymentId` from forging `status=success` callbacks and settling
+// invoices they don't own. In real bKash production the gateway signs its
+// POSTs so verification lives in `bkashService.verifySignature()`; in mock
+// mode we sign our own redirect URL here.
+function signCallback(paymentId: string): string {
+  return crypto
+    .createHmac('sha256', env.JWT_ACCESS_SECRET)
+    .update(paymentId)
+    .digest('hex')
+    .slice(0, 32);
+}
+
+export function verifyCallbackSignature(paymentId: string, sig: string): boolean {
+  const expected = signCallback(paymentId);
+  if (sig.length !== expected.length) return false;
+  return crypto.timingSafeEqual(Buffer.from(sig), Buffer.from(expected));
+}
 
 export function buildPaymentsRouter(paymentLimiter: RequestHandler) {
   const paymentsRouter = Router();
@@ -21,13 +43,18 @@ paymentsRouter.post(
   asyncHandler(async (req, res) => {
     const invoice = await Invoice.findOne({ _id: req.body.invoiceId, customer: req.auth!.userId });
     if (!invoice) throw NotFound('Invoice not found');
+    // Block both terminal statuses. Without the void check, an admin could
+    // cancel an invoice while a customer is mid-checkout and still take
+    // money that then can't be reconciled against any open obligation.
     if (invoice.status === 'paid') throw BadRequest('Invoice already paid');
+    if (invoice.status === 'void') throw BadRequest('Invoice has been voided');
 
     const result = await bkashService.createPayment({
       amount: invoice.amount,
       currency: invoice.currency,
       invoiceId: String(invoice._id),
       payerReference: req.auth!.email,
+      callbackSignature: signCallback,
     });
 
     await Payment.create({
@@ -57,6 +84,15 @@ paymentsRouter.all(
     // URL appends `status=success` explicitly on happy path.
     const status = (req.query.status as string) || (req.body?.status as string) || '';
     if (!paymentId) throw BadRequest('Missing paymentID');
+
+    // Signature verification. In mock mode we signed the redirect URL in
+    // `/bkash/init` with an HMAC keyed on JWT_ACCESS_SECRET; the callback
+    // must present that exact signature for us to trust `status=success`.
+    // In live mode swap this for bKash's real signature header check.
+    const sig = (req.query.sig as string) || (req.body?.sig as string) || '';
+    if (!sig || !verifyCallbackSignature(paymentId, sig)) {
+      throw Unauthorized('Invalid or missing callback signature');
+    }
 
     const payment = await Payment.findOne({ gatewayPaymentId: paymentId });
     if (!payment) throw NotFound('Payment not found');

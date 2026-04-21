@@ -11,6 +11,7 @@ import { radiusService } from './radius.service';
 import { Router as RouterModel } from '../models/Router';
 import { notifyCustomer, templates } from './notification.service';
 import { emitWebhook } from './webhook.service';
+import { decrypt } from '../utils/crypto';
 
 export const billingService = {
   /**
@@ -129,23 +130,30 @@ export const billingService = {
       const sub = await Subscription.findById(subId).populate('router');
       if (!sub || sub.status !== 'active') continue;
 
+      // Only flip the subscription to `suspended` after the PPPoE disable has
+      // actually succeeded. Otherwise (router unreachable, timeout, MikroTik
+      // auth error, …) we'd end up with a DB record marked suspended while
+      // the customer keeps browsing — effectively free service.
       try {
         await mikrotikService.setPppoeEnabled(sub.pppoeUsername, false, (sub.router as any) ?? null);
         await radiusService.sendCoA({ username: sub.pppoeUsername, action: 'disconnect' }).catch(() => undefined);
+
+        sub.status = 'suspended';
+        sub.suspendedAt = new Date();
+        await sub.save();
+
+        await Invoice.updateMany(
+          { subscription: sub._id, status: 'unpaid', dueDate: { $lt: today } },
+          { $set: { status: 'overdue' } }
+        );
+        suspended++;
       } catch (err) {
-        logger.error('Failed to disable PPPoE for overdue sub', { subId, err: (err as Error).message });
+        logger.error('Failed to disable PPPoE for overdue sub — NOT marking suspended', {
+          subId,
+          err: (err as Error).message,
+        });
+        // Leave status=active so the next billing run retries the disable.
       }
-
-      sub.status = 'suspended';
-      sub.suspendedAt = new Date();
-      await sub.save();
-
-      // Mark overdue invoices
-      await Invoice.updateMany(
-        { subscription: sub._id, status: 'unpaid', dueDate: { $lt: today } },
-        { $set: { status: 'overdue' } }
-      );
-      suspended++;
     }
 
     logger.info('Billing run complete', { invoicesCreated, suspended });
@@ -230,12 +238,15 @@ export const billingService = {
     if (sub.status === 'pending') {
       try {
         const pkg = await PackagePlan.findById(sub.package);
+        // Decrypt the PPPoE password that was stored at subscription-creation
+        // time. Using the username as a placeholder here would provision the
+        // router with the wrong secret and the customer's dialer would fail
+        // with "authentication error" on a real MikroTik.
+        const pppoePassword = decrypt(sub.pppoePasswordEncrypted);
         await mikrotikService.addPppoeUser(
           {
             username: sub.pppoeUsername,
-            // PPPoE secrets are only needed for provisioning; we don't
-            // round-trip them through the payment path.
-            password: sub.pppoeUsername,
+            password: pppoePassword,
             profile: pkg?.mikrotikProfile || pkg?.code || 'default',
             comment: `cust:${sub.customer}`,
           },

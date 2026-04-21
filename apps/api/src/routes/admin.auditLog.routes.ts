@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { asyncHandler } from '../utils/asyncHandler';
 import { requireAuth, requireRole } from '../middleware/auth';
 import { AuditLog } from '../models/AuditLog';
+import { escapeRegex } from '../utils/regex';
 
 export const adminAuditLogRouter = Router();
 adminAuditLogRouter.use(requireAuth, requireRole('admin'));
@@ -14,7 +15,8 @@ adminAuditLogRouter.get(
     const filter: Record<string, unknown> = {};
     if (typeof action === 'string' && action) filter.action = action;
     if (typeof actor === 'string' && actor) filter.actor = actor;
-    if (typeof target === 'string' && target) filter.target = { $regex: target, $options: 'i' };
+    if (typeof target === 'string' && target)
+      filter.target = { $regex: escapeRegex(target), $options: 'i' };
     if (from || to) {
       const range: Record<string, Date> = {};
       if (typeof from === 'string' && from) range.$gte = new Date(from);

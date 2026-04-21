@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { asyncHandler } from '../utils/asyncHandler';
@@ -133,7 +134,13 @@ adminBulkImportRouter.post(
           // rely on the admin to run "send password-reset" later. Never
           // expose the generated password — it's throwaway. Real deployments
           // should email a password-set link instead.
-          const tempPassword = Math.random().toString(36).slice(2, 12);
+          // Cryptographically strong throwaway password. `Math.random()` is
+          // a predictable PRNG whose output an attacker who knows the
+          // approximate timestamp could reconstruct — meaningful here
+          // because the admin never sees the password (we expect them to
+          // trigger a password-reset flow to the customer), but a window
+          // still exists between creation and reset.
+          const tempPassword = crypto.randomBytes(12).toString('base64url');
           const passwordHash = await bcrypt.hash(tempPassword, env.BCRYPT_ROUNDS);
           await User.create({
             email,
