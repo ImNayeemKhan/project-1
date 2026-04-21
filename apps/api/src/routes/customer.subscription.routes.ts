@@ -14,6 +14,7 @@ import { radiusService } from '../services/radius.service';
 import { Router as RouterModel } from '../models/Router';
 import { emitWebhook } from '../services/webhook.service';
 import { escapeHtml } from '../utils/html';
+import { logger } from '../config/logger';
 
 export const customerSubscriptionRouter = Router();
 customerSubscriptionRouter.use(requireAuth, requireRole('customer'));
@@ -157,20 +158,32 @@ customerSubscriptionRouter.post(
       );
     }
 
+    // Provision the PPPoE line first, then flip status. If the router is
+    // unreachable we must leave the subscription `suspended` so a retry (admin
+    // NOC or next payment callback) can finish the job — setting `active`
+    // while the line is still disabled gives the customer a green light in
+    // the portal but no internet, and the dashboard loses the signal that
+    // something is broken. Mirrors billing.service.markInvoicePaid.
     const router = sub.router ? await RouterModel.findById(sub.router) : null;
     try {
       await mikrotikService.setPppoeEnabled(sub.pppoeUsername, true, router);
       await radiusService
         .sendCoA({ username: sub.pppoeUsername, action: 'reauthorize' })
         .catch(() => undefined);
-    } catch {
-      // Router may be unreachable; admin NOC will finish provisioning.
+      sub.pausedAt = undefined;
+      sub.pauseEndsAt = undefined;
+      sub.status = 'active';
+      sub.suspendedAt = undefined;
+      await sub.save();
+    } catch (err) {
+      logger.warn('customer.resume: provisioning failed, leaving subscription suspended', {
+        subscriptionId: String(sub._id),
+        error: err instanceof Error ? err.message : String(err),
+      });
+      throw BadRequest(
+        'We could not re-enable your connection right now. Our NOC has been notified; please try again in a few minutes or contact support.'
+      );
     }
-    sub.pausedAt = undefined;
-    sub.pauseEndsAt = undefined;
-    sub.status = 'active';
-    sub.suspendedAt = undefined;
-    await sub.save();
 
     await emitWebhook('subscription.reactivated', {
       subscriptionId: String(sub._id),

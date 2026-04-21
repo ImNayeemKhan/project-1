@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { Types } from 'mongoose';
 import { z } from 'zod';
+import crypto from 'crypto';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validate } from '../middleware/validate';
 import { requireAuth, requireRole } from '../middleware/auth';
@@ -44,7 +45,14 @@ customerTicketsRouter.post(
   '/',
   validate(createSchema),
   asyncHandler(async (req, res) => {
-    const ticketNo = `TKT-${Date.now().toString(36).toUpperCase()}`;
+    // `Date.now()` alone collides when two customers hit Submit in the same
+    // ms — with a unique index on ticketNo, one request fails with a 500 and
+    // the customer sees a broken UI. Append 6 hex chars (24 bits of entropy)
+    // matching how routerHealth.service.ts generates NOC tickets.
+    const ticketNo = `TKT-${Date.now().toString(36).toUpperCase()}${crypto
+      .randomBytes(3)
+      .toString('hex')
+      .toUpperCase()}`;
     const ticket = await Ticket.create({
       ticketNo,
       customer: req.auth!.userId,
