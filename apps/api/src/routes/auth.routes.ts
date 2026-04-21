@@ -1,14 +1,14 @@
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validate } from '../middleware/validate';
-import { authLimiter } from '../middleware/rateLimit';
 import { authService } from '../services/auth.service';
 import { requireAuth } from '../middleware/auth';
 import { User } from '../models/User';
 import { NotFound } from '../utils/errors';
 
-export const authRouter = Router();
+export function buildAuthRouter(authLimiter: RequestHandler) {
+  const authRouter = Router();
 
 const loginSchema = z.object({
   email: z.string().email(),
@@ -74,3 +74,6 @@ authRouter.get(
     res.json({ user });
   })
 );
+
+  return authRouter;
+}

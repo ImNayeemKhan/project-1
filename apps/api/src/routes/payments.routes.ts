@@ -1,16 +1,16 @@
-import { Router } from 'express';
+import { Router, RequestHandler } from 'express';
 import { z } from 'zod';
 import { asyncHandler } from '../utils/asyncHandler';
 import { validate } from '../middleware/validate';
 import { requireAuth } from '../middleware/auth';
-import { paymentLimiter } from '../middleware/rateLimit';
 import { Invoice } from '../models/Invoice';
 import { Payment } from '../models/Payment';
 import { bkashService } from '../services/bkash.service';
 import { billingService } from '../services/billing.service';
 import { BadRequest, NotFound } from '../utils/errors';
 
-export const paymentsRouter = Router();
+export function buildPaymentsRouter(paymentLimiter: RequestHandler) {
+  const paymentsRouter = Router();
 
 // --- Initiate bKash payment ---
 paymentsRouter.post(
@@ -73,8 +73,12 @@ paymentsRouter.all(
 
     if (payment.status === 'success') {
       await billingService.markInvoicePaid(String(payment.invoice), executed.trxId);
+      return res.redirect(`/pay/success?tx=${executed.trxId}`);
     }
 
-    res.redirect(`/pay/success?tx=${executed.trxId}`);
+    return res.redirect('/pay/failed');
   })
 );
+
+  return paymentsRouter;
+}

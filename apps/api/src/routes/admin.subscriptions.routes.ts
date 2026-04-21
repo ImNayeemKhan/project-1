@@ -12,6 +12,7 @@ import { encrypt } from '../utils/crypto';
 import { BadRequest, NotFound } from '../utils/errors';
 import { mikrotikService } from '../services/mikrotik.service';
 import { radiusService } from '../services/radius.service';
+import { escapeRegex } from '../utils/regex';
 
 export const adminSubscriptionsRouter = Router();
 adminSubscriptionsRouter.use(requireAuth, requireRole('admin', 'reseller'));
@@ -23,7 +24,7 @@ adminSubscriptionsRouter.get(
     const filter: any = {};
     if (status) filter.status = status;
     if (customer) filter.customer = customer;
-    if (q) filter.pppoeUsername = new RegExp(q, 'i');
+    if (q) filter.pppoeUsername = new RegExp(escapeRegex(q), 'i');
     const items = await Subscription.find(filter)
       .populate('customer', 'name email phone')
       .populate('package', 'name code monthlyPrice downloadMbps uploadMbps')

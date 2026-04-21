@@ -5,11 +5,15 @@ import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
 import { env } from './config/env';
 import { logger } from './config/logger';
-import { apiRouter } from './routes';
+import { buildApiRouter } from './routes';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler';
-import { globalLimiter } from './middleware/rateLimit';
+import { buildLimiters } from './middleware/rateLimit';
 
 export function buildApp() {
+  // IMPORTANT: build limiters AFTER initRedis() has run so they bind to the
+  // live Redis store instead of silently falling back to in-memory counters.
+  const limiters = buildLimiters();
+
   const app = express();
 
   app.set('trust proxy', 1);
@@ -36,9 +40,9 @@ export function buildApp() {
     })
   );
 
-  app.use(globalLimiter);
+  app.use(limiters.global);
 
-  app.use('/api', apiRouter);
+  app.use('/api', buildApiRouter(limiters));
 
   app.use(notFoundHandler);
   app.use(errorHandler);

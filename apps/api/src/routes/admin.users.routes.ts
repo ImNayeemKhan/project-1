@@ -7,6 +7,7 @@ import { requireAuth, requireRole } from '../middleware/auth';
 import { User } from '../models/User';
 import { env } from '../config/env';
 import { Conflict, NotFound } from '../utils/errors';
+import { escapeRegex } from '../utils/regex';
 
 export const adminUsersRouter = Router();
 adminUsersRouter.use(requireAuth, requireRole('admin'));
@@ -25,7 +26,10 @@ adminUsersRouter.get(
     const { q, role, page, limit } = req.query as any;
     const filter: any = {};
     if (role) filter.role = role;
-    if (q) filter.$or = [{ email: new RegExp(q, 'i') }, { name: new RegExp(q, 'i') }, { phone: new RegExp(q, 'i') }];
+    if (q) {
+      const safe = escapeRegex(q);
+      filter.$or = [{ email: new RegExp(safe, 'i') }, { name: new RegExp(safe, 'i') }, { phone: new RegExp(safe, 'i') }];
+    }
     const [items, total] = await Promise.all([
       User.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit).select('-passwordHash'),
       User.countDocuments(filter),

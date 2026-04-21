@@ -1,9 +1,10 @@
-import rateLimit from 'express-rate-limit';
+import rateLimit, { RateLimitRequestHandler } from 'express-rate-limit';
 import RedisStore from 'rate-limit-redis';
 import { redis } from '../config/redis';
 
+// Redis stores must be built AFTER initRedis() has connected the client.
+// Call buildLimiters() from buildApp(), not at module load time.
 function makeStore(prefix: string) {
-  // Only use Redis store if the client is ready — otherwise fall back to in-memory.
   if (redis.status !== 'ready') return undefined;
   return new RedisStore({
     prefix,
@@ -11,27 +12,35 @@ function makeStore(prefix: string) {
   });
 }
 
-export const globalLimiter = rateLimit({
-  windowMs: 60_000,
-  limit: 300,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  store: makeStore('rl:global:'),
-});
+export interface RateLimiters {
+  global: RateLimitRequestHandler;
+  auth: RateLimitRequestHandler;
+  payment: RateLimitRequestHandler;
+}
 
-export const authLimiter = rateLimit({
-  windowMs: 15 * 60_000,
-  limit: 10,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  message: { error: { code: 'RATE_LIMITED', message: 'Too many auth attempts, try again later.' } },
-  store: makeStore('rl:auth:'),
-});
-
-export const paymentLimiter = rateLimit({
-  windowMs: 60_000,
-  limit: 20,
-  standardHeaders: 'draft-7',
-  legacyHeaders: false,
-  store: makeStore('rl:pay:'),
-});
+export function buildLimiters(): RateLimiters {
+  return {
+    global: rateLimit({
+      windowMs: 60_000,
+      limit: 300,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      store: makeStore('rl:global:'),
+    }),
+    auth: rateLimit({
+      windowMs: 15 * 60_000,
+      limit: 10,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      message: { error: { code: 'RATE_LIMITED', message: 'Too many auth attempts, try again later.' } },
+      store: makeStore('rl:auth:'),
+    }),
+    payment: rateLimit({
+      windowMs: 60_000,
+      limit: 20,
+      standardHeaders: 'draft-7',
+      legacyHeaders: false,
+      store: makeStore('rl:pay:'),
+    }),
+  };
+}
