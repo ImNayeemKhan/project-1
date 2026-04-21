@@ -9,7 +9,7 @@ interface Invoice {
   currency: string;
   status: 'unpaid' | 'paid' | 'overdue' | 'void';
   dueDate: string;
-  subscription: { pppoeUsername: string };
+  subscription: { _id: string; pppoeUsername: string };
 }
 
 export default function CustomerInvoices() {
@@ -54,9 +54,19 @@ export default function CustomerInvoices() {
                 <td className="table-td">{new Date(i.dueDate).toLocaleDateString()}</td>
                 <td className="table-td"><span className={tone(i.status)}>{i.status}</span></td>
                 <td className="table-td">
-                  {i.status !== 'paid' && (
-                    <button className="btn-primary !px-3 !py-1 text-xs" onClick={() => pay(i._id)}>Pay with bKash</button>
-                  )}
+                  <div className="flex flex-wrap gap-2">
+                    {i.status !== 'paid' && (
+                      <button className="btn-primary !px-3 !py-1 text-xs" onClick={() => pay(i._id)}>Pay with bKash</button>
+                    )}
+                    <a
+                      className="btn border border-slate-200 !px-3 !py-1 text-xs text-slate-700 hover:bg-slate-50"
+                      href={`/api/customer/subscriptions/${i.subscription._id}/invoices/${i._id}/print`}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Print / PDF
+                    </a>
+                  </div>
                 </td>
               </tr>
             ))}

@@ -19,6 +19,7 @@ import { customerRouter } from './customer.routes';
 import { customerTicketsRouter } from './customer.tickets.routes';
 import { customerAnnouncementsRouter } from './customer.announcements.routes';
 import { customerFtpRouter } from './customer.ftp.routes';
+import { customerSubscriptionRouter } from './customer.subscription.routes';
 import { buildPaymentsRouter } from './payments.routes';
 import { publicRouter } from './public.routes';
 import { healthRouter } from './health.routes';
@@ -46,6 +47,7 @@ export function buildApiRouter(limiters: RateLimiters) {
   apiRouter.use('/admin/addons', adminAddonsRouter);
   apiRouter.use('/admin/webhooks', adminWebhooksRouter);
   apiRouter.use('/customer', customerRouter);
+  apiRouter.use('/customer/subscriptions', customerSubscriptionRouter);
   apiRouter.use('/customer/tickets', customerTicketsRouter);
   apiRouter.use('/customer/announcements', customerAnnouncementsRouter);
   apiRouter.use('/customer/ftp', customerFtpRouter);

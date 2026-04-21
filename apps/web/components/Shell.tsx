@@ -31,7 +31,10 @@ const adminNav: NavItem[] = [
 
 const customerNav: NavItem[] = [
   { href: '/customer', label: 'Overview' },
+  { href: '/customer/subscription', label: 'Manage plan' },
   { href: '/customer/invoices', label: 'Invoices' },
+  { href: '/customer/usage', label: 'Usage' },
+  { href: '/customer/referral', label: 'Refer a friend' },
   { href: '/customer/tickets', label: 'Support tickets' },
   { href: '/customer/announcements', label: 'Announcements' },
   { href: '/customer/ftp', label: 'FTP servers' },

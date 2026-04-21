@@ -29,6 +29,20 @@ export const billingService = {
 
     for (const sub of due) {
       try {
+        // Apply a queued plan change scheduled to take effect at this
+        // renewal. Downgrades (or "apply next cycle") are queued on the
+        // subscription's pendingPackage; flipping now means the new period's
+        // invoice is billed at the new rate.
+        if (
+          sub.pendingPackage &&
+          sub.pendingPackageEffectiveAt &&
+          sub.pendingPackageEffectiveAt.getTime() <= today.getTime()
+        ) {
+          sub.package = sub.pendingPackage;
+          sub.pendingPackage = undefined;
+          sub.pendingPackageEffectiveAt = undefined;
+          await sub.populate('package');
+        }
         const pkg = sub.package as unknown as { monthlyPrice: number };
         const periodStart = sub.nextBillingDate;
         const periodEnd = addMonths(periodStart, 1);
@@ -155,6 +169,25 @@ export const billingService = {
     // Reset dunning so a re-billed future period starts from a clean slate.
     invoice.remindersSent = [];
     await invoice.save();
+
+    // Finalize a queued plan change. If this invoice covers a pro-rated
+    // upgrade (planChangeService set pendingPackage + pendingPackageEffectiveAt
+    // at request time), swap the package on the subscription and clear the
+    // pending fields now that money has settled.
+    const subForChange = await Subscription.findById(invoice.subscription);
+    if (
+      subForChange?.pendingPackage &&
+      subForChange.pendingPackageEffectiveAt &&
+      subForChange.pendingPackageEffectiveAt.getTime() <= Date.now()
+    ) {
+      subForChange.package = subForChange.pendingPackage;
+      subForChange.pendingPackage = undefined;
+      subForChange.pendingPackageEffectiveAt = undefined;
+      await subForChange.save();
+      logger.info('Applied queued plan change after payment', {
+        subId: String(subForChange._id),
+      });
+    }
 
     // Receipt + invoice.paid webhook (independent of provisioning outcome).
     const customer = await User.findById(invoice.customer).select('name email phone');

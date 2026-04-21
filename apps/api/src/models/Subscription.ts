@@ -16,6 +16,16 @@ export interface ISubscription {
   suspendedAt?: Date;
   cancelledAt?: Date;
   notes?: string;
+  // Self-service fields.
+  autoPay?: boolean;
+  pausedAt?: Date;
+  pauseEndsAt?: Date;
+  pauseDaysUsedThisYear?: number;
+  pauseYearStartedAt?: Date;
+  pendingPackage?: Types.ObjectId; // Queued plan change for next cycle.
+  pendingPackageEffectiveAt?: Date;
+  referralCode?: string;
+  referredBy?: Types.ObjectId;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -39,6 +49,15 @@ const SubscriptionSchema = new Schema<ISubscription>(
     suspendedAt: { type: Date },
     cancelledAt: { type: Date },
     notes: { type: String },
+    autoPay: { type: Boolean, default: false },
+    pausedAt: { type: Date },
+    pauseEndsAt: { type: Date },
+    pauseDaysUsedThisYear: { type: Number, default: 0 },
+    pauseYearStartedAt: { type: Date },
+    pendingPackage: { type: Schema.Types.ObjectId, ref: 'Package' },
+    pendingPackageEffectiveAt: { type: Date },
+    referralCode: { type: String, index: true, sparse: true },
+    referredBy: { type: Schema.Types.ObjectId, ref: 'User' },
   },
   { timestamps: true }
 );
