@@ -109,3 +109,66 @@ publicRouter.post(
     res.status(201).json({ ok: true, leadId: lead._id });
   })
 );
+
+const bookingSchema = z.object({
+  name: z.string().min(1),
+  phone: z.string().min(4),
+  email: z.string().email().optional(),
+  address: z.string().min(3),
+  zone: z.string().optional(),
+  packageInterest: z.string().optional(),
+  slotDate: z.string().min(6),
+  slotWindow: z.enum(['morning', 'afternoon', 'evening']),
+  notes: z.string().optional(),
+});
+
+// Install slot booking -> creates a high-intent Lead with a preferred visit
+// window. Ops triages these from the /admin/leads pipeline like any other
+// lead, but the notes line identifies the booking and slot.
+publicRouter.post(
+  '/book-install',
+  validate(bookingSchema),
+  asyncHandler(async (req, res) => {
+    const header = `INSTALL BOOKING: ${req.body.slotDate} (${req.body.slotWindow}).`;
+    const lead = await Lead.create({
+      name: req.body.name,
+      phone: req.body.phone,
+      email: req.body.email,
+      address: req.body.address,
+      zone: req.body.zone,
+      packageInterest: req.body.packageInterest,
+      notes: [header, req.body.notes].filter(Boolean).join(' '),
+      source: 'website',
+      status: 'qualified',
+    });
+    res.status(201).json({ ok: true, leadId: lead._id });
+  })
+);
+
+// Referral capture. Treats the referral code as a free-text note; matching
+// to an existing customer for reward crediting is handled by ops from the
+// lead detail page.
+const referralSchema = z.object({
+  name: z.string().min(1),
+  phone: z.string().min(4),
+  email: z.string().email().optional(),
+  address: z.string().optional(),
+  referralCode: z.string().min(3),
+});
+
+publicRouter.post(
+  '/referral',
+  validate(referralSchema),
+  asyncHandler(async (req, res) => {
+    const lead = await Lead.create({
+      name: req.body.name,
+      phone: req.body.phone,
+      email: req.body.email,
+      address: req.body.address,
+      notes: `REFERRAL: code ${req.body.referralCode}`,
+      source: 'referral',
+      status: 'new',
+    });
+    res.status(201).json({ ok: true, leadId: lead._id });
+  })
+);

@@ -4,6 +4,7 @@ import { BRAND } from '@/lib/brand';
 import { SpeedTypewriter } from '@/components/SpeedTypewriter';
 import { AnimatedCounter } from '@/components/AnimatedCounter';
 import { ScrollReveal } from '@/components/ScrollReveal';
+import { TestimonialCarousel } from '@/components/TestimonialCarousel';
 
 export const metadata: Metadata = {
   title: `${BRAND.name} — Fiber internet for homes, gamers, and corporates`,
@@ -186,6 +187,19 @@ export default async function HomePage() {
             )}
           </div>
         </div>
+      </section>
+
+      {/* Testimonials */}
+      <section className="mx-auto max-w-4xl px-6 py-16">
+        <ScrollReveal>
+          <div className="mb-8 text-center">
+            <p className="text-sm font-semibold uppercase tracking-widest text-brand-600">
+              Loved by 15,000+ homes
+            </p>
+            <h3 className="mt-2 text-3xl font-bold text-slate-900">What our customers say</h3>
+          </div>
+          <TestimonialCarousel />
+        </ScrollReveal>
       </section>
 
       {/* CTA */}

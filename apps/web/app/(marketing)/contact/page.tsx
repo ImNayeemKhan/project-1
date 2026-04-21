@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { BRAND } from '@/lib/brand';
 import { CoverageChecker } from '@/components/CoverageChecker';
+import { InstallSlotBooking } from '@/components/InstallSlotBooking';
 
 export default function ContactPage() {
   const [name, setName] = useState('');
@@ -51,6 +52,10 @@ export default function ContactPage() {
 
       <div className="mt-8">
         <CoverageChecker />
+      </div>
+
+      <div className="mt-10">
+        <InstallSlotBooking />
       </div>
 
       <div className="mt-10 grid gap-10 md:grid-cols-[2fr_1fr]">

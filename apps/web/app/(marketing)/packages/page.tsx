@@ -1,6 +1,10 @@
 import type { Metadata } from 'next';
 import { BRAND } from '@/lib/brand';
 import { PackageFilterGrid, type PackageRow } from '@/components/PackageFilterGrid';
+import { PricingComparisonTable } from '@/components/PricingComparisonTable';
+import { PlanQuiz } from '@/components/PlanQuiz';
+import { SavingsCalculator } from '@/components/SavingsCalculator';
+import { ProductListJsonLd } from '@/components/StructuredData';
 
 export const metadata: Metadata = {
   title: `Packages — ${BRAND.name}`,
@@ -39,7 +43,26 @@ export default async function PackagesPage() {
           Packages are temporarily unavailable. Please try again in a moment.
         </p>
       ) : (
-        <PackageFilterGrid packages={packages} />
+        <>
+          <ProductListJsonLd packages={packages} />
+          <PackageFilterGrid packages={packages} />
+          <section className="mt-16">
+            <PricingComparisonTable packages={packages} />
+          </section>
+          <section className="mt-16 grid grid-cols-1 gap-8 lg:grid-cols-5">
+            <div className="lg:col-span-3">
+              <PlanQuiz packages={packages} />
+            </div>
+            <div className="lg:col-span-2">
+              <SavingsCalculator
+                defaultCurrent={1800}
+                defaultTarget={packages[0]?.monthlyPrice ?? 1200}
+                targetFupGB={packages[0]?.fupGB}
+                targetName={packages[0]?.name ?? 'the starter plan'}
+              />
+            </div>
+          </section>
+        </>
       )}
     </div>
   );
