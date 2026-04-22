@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import { usePathname, useSearchParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 
 /**
  * Subtle top-of-page progress bar that animates on every route change.
@@ -14,8 +14,11 @@ import { usePathname, useSearchParams } from 'next/navigation';
  *   finishes to 100% and fades out.
  */
 export function RouteProgress() {
+  // Intentionally only listens to `pathname` — using `useSearchParams()`
+  // here opts the whole app out of static prerendering (Next.js 14
+  // bails the tree into CSR without a Suspense boundary). The bar on
+  // query-only changes is overkill anyway.
   const pathname = usePathname();
-  const searchParams = useSearchParams();
   const [progress, setProgress] = React.useState(0);
   const [visible, setVisible] = React.useState(false);
   const raf = React.useRef<number | null>(null);
@@ -50,7 +53,7 @@ export function RouteProgress() {
       if (raf.current) window.cancelAnimationFrame(raf.current);
       window.clearTimeout(finish);
     };
-  }, [pathname, searchParams]);
+  }, [pathname]);
 
   return (
     <div
