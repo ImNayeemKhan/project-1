@@ -1,0 +1,31 @@
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+coverage/
+
+# env
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# logs
+*.log
+logs/
+pids/
+*.pid
+
+# editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# runtime
+tmp/
+
+# TypeScript build info
+*.tsbuildinfo
+

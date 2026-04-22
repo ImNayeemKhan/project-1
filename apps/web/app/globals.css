@@ -1,0 +1,319 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* =========================================================================
+ * DESIGN TOKENS
+ * =======================================================================
+ * One source of truth for color, surface, and elevation. Tailwind maps
+ * token names to these CSS variables via tailwind.config.ts, so every
+ * component references `bg-surface` / `text-primary` instead of hardcoded
+ * `#fff` / `#111`. Dark mode is a class on <html> that swaps the vars.
+ *
+ * Scale rationale:
+ *   - Near-black foreground (#0A0A0A) + brand blue (#0066FF) matches the
+ *     Stripe / Linear / Starlink visual language.
+ *   - Neutral ramp is warm-leaning so the UI doesn't feel cold/clinical.
+ *   - 8% / 12% / 24% alpha borders keep surfaces from feeling boxy.
+ * ======================================================================= */
+
+:root {
+  color-scheme: light;
+
+  /* Brand */
+  --brand-50:  #EFF6FF;
+  --brand-100: #DBEAFE;
+  --brand-200: #BFDBFE;
+  --brand-300: #93C5FD;
+  --brand-400: #60A5FA;
+  --brand-500: #3B82F6;
+  --brand-600: #2563EB;   /* primary-action fill */
+  --brand-700: #1D4ED8;
+  --brand-900: #1E3A8A;
+
+  /* Semantic surfaces (light) */
+  --bg-canvas:        #FAFAFA;     /* page background */
+  --bg-surface:       #FFFFFF;     /* card / panel */
+  --bg-surface-muted: #F5F5F5;     /* secondary surface */
+  --bg-surface-sunken: #F0F0F0;
+
+  /* Semantic text (light) */
+  --text-primary:   #0A0A0A;
+  --text-secondary: #404040;
+  --text-muted:     #737373;
+  --text-subtle:    #A3A3A3;
+  --text-on-brand:  #FFFFFF;
+
+  /* Borders (light) — expressed as translucent black so they reads as
+   * hairlines against any surface without competing for color attention. */
+  --border-subtle:   rgba(10, 10, 10, 0.06);
+  --border-default:  rgba(10, 10, 10, 0.10);
+  --border-strong:   rgba(10, 10, 10, 0.18);
+
+  /* Feedback */
+  --success: #059669;
+  --warning: #D97706;
+  --danger:  #DC2626;
+  --info:    #2563EB;
+
+  /* Elevation (light) — only 3 levels */
+  --elev-0: none;
+  --elev-1: 0 1px 2px rgba(10, 10, 10, 0.04), 0 1px 1px rgba(10, 10, 10, 0.03);
+  --elev-2: 0 12px 32px -8px rgba(10, 10, 10, 0.12), 0 4px 12px -4px rgba(10, 10, 10, 0.06);
+
+  /* Ring (focus) */
+  --ring: 0 0 0 2px var(--bg-canvas), 0 0 0 4px var(--brand-500);
+}
+
+.dark {
+  color-scheme: dark;
+
+  --bg-canvas:        #0A0A0A;
+  --bg-surface:       #141414;
+  --bg-surface-muted: #1A1A1A;
+  --bg-surface-sunken: #080808;
+
+  --text-primary:   #FAFAFA;
+  --text-secondary: #D4D4D4;
+  --text-muted:     #A3A3A3;
+  --text-subtle:    #737373;
+  --text-on-brand:  #FFFFFF;
+
+  --border-subtle:   rgba(255, 255, 255, 0.06);
+  --border-default:  rgba(255, 255, 255, 0.10);
+  --border-strong:   rgba(255, 255, 255, 0.18);
+
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.40), 0 1px 1px rgba(0, 0, 0, 0.25);
+  --elev-2: 0 12px 32px -8px rgba(0, 0, 0, 0.55), 0 4px 12px -4px rgba(0, 0, 0, 0.35);
+
+  --brand-50:  #0B1E3D;
+  --brand-100: #132D59;
+}
+
+html, body {
+  height: 100%;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  font-feature-settings: 'cv11' on, 'ss01' on, 'tnum' on;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Bengali fallback for any Bengali glyphs inside Latin-primary runs. */
+body :lang(bn),
+body .font-bn {
+  font-family: var(--font-bn), var(--font-sans), system-ui, sans-serif;
+}
+
+/* Selection + focus */
+::selection { background: var(--brand-500); color: white; }
+:focus-visible { outline: none; box-shadow: var(--ring); border-radius: 6px; }
+
+/* Reset some Tailwind base so inputs inherit our color tokens. */
+input, textarea, select, button { color: inherit; }
+
+/* =========================================================================
+ * COMPONENT LAYER
+ * =======================================================================
+ * Premium primitives. Names match the old API (`.btn`, `.btn-primary`,
+ * `.card`, `.badge-*`, `.input`, `.table-th`, `.table-td`) so nothing
+ * breaks while the redesign lands page by page.
+ * ======================================================================= */
+
+@layer components {
+  /* --- Buttons --- */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-[10px] px-4 py-2 text-sm font-medium transition-all duration-150 ease-out;
+  }
+  .btn-primary {
+    background: var(--brand-600);
+    color: var(--text-on-brand);
+    @apply btn shadow-[0_1px_2px_rgba(10,10,10,0.12)] hover:-translate-y-px hover:shadow-[0_4px_10px_-2px_rgba(37,99,235,0.35)] active:translate-y-0 disabled:opacity-50 disabled:hover:translate-y-0;
+  }
+  .btn-primary:hover { background: var(--brand-700); }
+  .btn-secondary {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    @apply btn hover:bg-[color:var(--bg-surface-muted)];
+  }
+  .btn-ghost {
+    color: var(--text-primary);
+    @apply btn hover:bg-[color:var(--bg-surface-muted)];
+  }
+  .btn-danger {
+    background: var(--danger);
+    color: white;
+    @apply btn hover:opacity-90;
+  }
+  .btn-sm { @apply h-8 px-3 text-xs rounded-[8px]; }
+  .btn-lg { @apply h-12 px-6 text-base rounded-[12px]; }
+
+  /* --- Inputs --- */
+  .input {
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    border: 1px solid var(--border-default);
+    @apply w-full rounded-[10px] px-3 py-2 text-sm transition-colors placeholder:text-[color:var(--text-subtle)] focus:border-[color:var(--brand-500)] focus:outline-none;
+  }
+  .input:focus { box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18); }
+
+  /* --- Card --- */
+  .card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    @apply rounded-[14px] p-5;
+  }
+  .card-elevated {
+    background: var(--bg-surface);
+    @apply rounded-[14px] p-5 shadow-[var(--elev-1)];
+  }
+  .card-interactive {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-subtle);
+    @apply rounded-[14px] p-5 transition-all duration-150 ease-out hover:-translate-y-px hover:shadow-[var(--elev-2)];
+  }
+
+  /* --- Badges / Chips --- */
+  .badge {
+    @apply inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-medium;
+  }
+  .badge-green  { background: #D1FAE5; color: #065F46; }
+  .badge-yellow { background: #FEF3C7; color: #92400E; }
+  .badge-red    { background: #FEE2E2; color: #991B1B; }
+  .badge-blue   { background: var(--brand-50); color: var(--brand-700); }
+  .badge-slate  { background: var(--bg-surface-muted); color: var(--text-secondary); }
+
+  .dark .badge-green  { background: rgba(16, 185, 129, 0.14); color: #6EE7B7; }
+  .dark .badge-yellow { background: rgba(245, 158, 11, 0.14); color: #FCD34D; }
+  .dark .badge-red    { background: rgba(239, 68, 68, 0.14); color: #FCA5A5; }
+  .dark .badge-blue   { background: rgba(59, 130, 246, 0.14); color: #93C5FD; }
+
+  .chip {
+    background: var(--bg-surface-muted);
+    color: var(--text-secondary);
+    @apply inline-flex items-center gap-1.5 rounded-[8px] px-2.5 py-1 text-xs font-medium;
+  }
+
+  /* --- Table --- */
+  .table-th { @apply px-3 py-2 text-left text-[11px] font-semibold uppercase tracking-wide;
+    color: var(--text-muted);
+  }
+  .table-td { @apply px-3 py-2.5 text-sm;
+    color: var(--text-secondary);
+  }
+  .table-row-hover:hover { background: var(--bg-surface-muted); }
+
+  /* --- Section spacing rhythm --- */
+  .section { @apply py-16 md:py-24; }
+  .section-tight { @apply py-10 md:py-14; }
+  .container-x { @apply mx-auto w-full max-w-[1200px] px-6; }
+
+  /* --- Type scale helpers --- */
+  .t-display { @apply text-[44px] md:text-[56px] leading-[1.05] font-bold tracking-[-0.02em]; }
+  .t-h1      { @apply text-[32px] md:text-[40px] leading-[1.1] font-bold tracking-[-0.02em]; }
+  .t-h2      { @apply text-[24px] md:text-[28px] leading-[1.2] font-semibold tracking-[-0.015em]; }
+  .t-h3      { @apply text-[18px] md:text-[20px] leading-[1.3] font-semibold; }
+  .t-body-lg { @apply text-[17px] md:text-[18px] leading-[1.55]; color: var(--text-secondary); }
+  .t-body    { @apply text-[15px] leading-[1.55]; color: var(--text-secondary); }
+  .t-small   { @apply text-[13px] leading-[1.5]; color: var(--text-muted); }
+  .t-caption { @apply text-[12px] leading-[1.4] uppercase tracking-[0.08em] font-medium; color: var(--text-muted); }
+
+  /* --- Utility: hairline --- */
+  .hairline { border-color: var(--border-subtle); }
+  .hairline-strong { border-color: var(--border-default); }
+
+  /* --- KBD (keyboard shortcut hint) --- */
+  .kbd {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-default);
+    color: var(--text-secondary);
+    @apply inline-flex items-center justify-center rounded-[6px] px-1.5 py-0.5 text-[11px] font-semibold shadow-[0_1px_0_0_rgba(10,10,10,0.08)];
+  }
+}
+
+/* =========================================================================
+ * MOTION
+ * ======================================================================= */
+@keyframes kf-fade-up {
+  0%   { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0);   }
+}
+.anim-fade-up { animation: kf-fade-up 400ms cubic-bezier(0.4, 0, 0.2, 1) both; }
+
+@keyframes kf-pulse-dot {
+  0%,100% { opacity: 1; transform: scale(1); }
+  50%     { opacity: 0.55; transform: scale(1.35); }
+}
+.anim-pulse-dot { animation: kf-pulse-dot 1.8s ease-in-out infinite; }
+
+/* Shimmering border for featured card */
+@keyframes kf-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0;  }
+}
+.anim-shimmer-border::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    110deg,
+    transparent 20%,
+    rgba(37, 99, 235, 0.35) 40%,
+    rgba(37, 99, 235, 0.85) 50%,
+    rgba(37, 99, 235, 0.35) 60%,
+    transparent 80%
+  );
+  background-size: 200% 100%;
+  animation: kf-shimmer 3.2s linear infinite;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Shimmering skeleton loader — used by <Skeleton /> to signal pending data. */
+@keyframes kf-skeleton {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0;  }
+}
+.anim-skeleton {
+  background-image: linear-gradient(
+    110deg,
+    var(--color-surface-muted) 20%,
+    rgba(148, 163, 184, 0.22) 50%,
+    var(--color-surface-muted) 80%
+  );
+  background-size: 200% 100%;
+  animation: kf-skeleton 1.4s linear infinite;
+}
+
+/* Input shake — emitted on sign-in / form failure to signal the field is
+   rejecting the submission without a disruptive modal. */
+@keyframes kf-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+.anim-shake { animation: kf-shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
+/* Soft breathing glow around the hero logo so it feels alive without
+   dominating the composition. */
+@keyframes kf-breathe {
+  0%, 100% { transform: scale(1);    filter: drop-shadow(0 10px 30px rgba(37, 99, 235, 0.15)); }
+  50%      { transform: scale(1.015); filter: drop-shadow(0 16px 44px rgba(37, 99, 235, 0.28)); }
+}
+.anim-breathe { animation: kf-breathe 6s ease-in-out infinite; }
+
+/* Reduced motion honors user preference. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
