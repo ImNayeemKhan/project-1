@@ -3,7 +3,9 @@
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
+import { AnimatePresence, motion } from 'framer-motion';
 import { BRAND } from '@/lib/brand';
+import { Logo } from './ui/Logo';
 import { FloatingCta } from './FloatingCta';
 
 const nav = [
@@ -45,12 +47,14 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
             scrolled ? 'py-2' : 'py-4'
           }`}
         >
-          <Link href="/" className="flex items-center gap-3">
+          <Link href="/" className="flex items-center gap-3" aria-label={BRAND.name}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={BRAND.logoUrl}
               alt={`${BRAND.name} logo`}
-              className={`w-auto transition-all duration-200 ${scrolled ? 'h-8' : 'h-10'}`}
+              className={`w-auto transition-all duration-300 ease-out ${
+                scrolled ? 'h-16' : 'h-24 md:h-28'
+              }`}
             />
             <span className="sr-only">{BRAND.name}</span>
           </Link>
@@ -65,14 +69,14 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`relative transition hover:text-brand-600 ${
+                  className={`group relative transition-colors duration-150 hover:text-brand-600 ${
                     active ? 'text-brand-700 font-semibold' : 'text-slate-700'
                   }`}
                 >
                   {item.label}
                   <span
-                    className={`absolute -bottom-1 left-0 h-0.5 bg-brand-600 transition-all duration-200 ${
-                      active ? 'w-full' : 'w-0'
+                    className={`absolute -bottom-1 left-0 h-0.5 rounded-full bg-brand-600 transition-all duration-300 ease-out ${
+                      active ? 'w-full opacity-100' : 'w-0 opacity-0 group-hover:w-full group-hover:opacity-70'
                     }`}
                   />
                 </Link>
@@ -119,8 +123,16 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
           </button>
         </div>
 
+        <AnimatePresence initial={false}>
         {mobileOpen && (
-          <div className="border-t border-slate-100 bg-white md:hidden">
+          <motion.div
+            key="mobile-menu"
+            initial={{ opacity: 0, y: -8, height: 0 }}
+            animate={{ opacity: 1, y: 0, height: 'auto' }}
+            exit={{ opacity: 0, y: -8, height: 0 }}
+            transition={{ duration: 0.22, ease: [0.22, 0.61, 0.36, 1] }}
+            className="overflow-hidden border-t border-slate-100 bg-white md:hidden"
+          >
             <nav className="mx-auto flex max-w-6xl flex-col gap-1 px-4 py-3 text-sm">
               {nav.map((item) => (
                 <Link
@@ -146,8 +158,9 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
                 Call {BRAND.primaryPhone}
               </a>
             </nav>
-          </div>
+          </motion.div>
         )}
+        </AnimatePresence>
       </header>
 
       <main>{children}</main>
@@ -155,9 +168,8 @@ export function MarketingShell({ children }: { children: React.ReactNode }) {
       <footer className="mt-24 border-t border-slate-100 bg-slate-50">
         <div className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-6 py-12 md:grid-cols-4">
           <div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={BRAND.logoUrl} alt={`${BRAND.name} logo`} className="h-10 w-auto" />
-            <p className="mt-3 text-sm text-slate-600">{BRAND.mission}</p>
+            <Logo size="2xl" href={false} className="-ml-1" />
+            <p className="mt-4 text-sm text-slate-600">{BRAND.mission}</p>
             <div className="mt-4 flex gap-2">
               <a
                 href={BRAND.social.facebook}

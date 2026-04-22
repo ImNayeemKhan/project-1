@@ -6,6 +6,9 @@ import {
   Card,
   Chip,
   Container,
+  Counter,
+  Logo,
+  ScrollReveal,
   Section,
   SectionHeading,
   StatusDot,
@@ -139,7 +142,8 @@ export default async function HomePage() {
           className="absolute inset-0 h-full w-full object-cover opacity-[0.14] dark:opacity-[0.06]"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-canvas/60 via-canvas/70 to-canvas" />
-        <Container className="relative py-24 md:py-32">
+        <Container className="relative py-24 md:py-28">
+          <div className="grid gap-12 md:grid-cols-[minmax(0,1fr)_auto] md:items-center">
           <div className="max-w-[720px]">
             <Chip leading={<StatusDot status="online" pulse />}>
               Fiber live in 14 Dhaka zones · 99.9% uptime
@@ -169,10 +173,16 @@ export default async function HomePage() {
               </a>
             </div>
             <div className="mt-12 grid max-w-[640px] grid-cols-3 gap-6 border-t border-subtle pt-8">
-              <HeroStat value="12,400+" label="Active subscribers" />
-              <HeroStat value="40 Gbps" label="BDIX peering" />
-              <HeroStat value="< 48h" label="Typical install" />
+              <HeroStatCounter to={12400} suffix="+" label="Active subscribers" />
+              <HeroStatCounter to={40} suffix=" Gbps" label="BDIX peering" />
+              <HeroStatFixed value="< 48h" label="Typical install" />
             </div>
+          </div>
+          {/* Hero logo — "dominant" slot. Breathing glow makes it feel alive
+              without motion that distracts from reading the headline. */}
+          <div className="hidden md:flex md:justify-end">
+            <Logo size="hero" href={false} glow className="drop-shadow-[0_20px_60px_rgba(37,99,235,0.18)]" />
+          </div>
           </div>
         </Container>
       </section>
@@ -201,22 +211,26 @@ export default async function HomePage() {
       {/* ===== WHY DESH ===== */}
       <Section variant="canvas">
         <Container>
-          <SectionHeading
-            eyebrow="Why Desh"
-            title="Four things we never compromise on."
-          />
+          <ScrollReveal>
+            <SectionHeading
+              eyebrow="Why Desh"
+              title="Four things we never compromise on."
+            />
+          </ScrollReveal>
           <div className="mt-12 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-4">
-            {WHY.map((w) => (
-              <Card key={w.title} variant="flat" className="h-full">
-                <div className="flex h-full flex-col">
-                  <div className="text-[15px] font-semibold tracking-[-0.005em] text-primary">
-                    {w.title}
+            {WHY.map((w, i) => (
+              <ScrollReveal key={w.title} delay={i * 0.06}>
+                <Card variant="flat" className="h-full">
+                  <div className="flex h-full flex-col">
+                    <div className="text-[15px] font-semibold tracking-[-0.005em] text-primary">
+                      {w.title}
+                    </div>
+                    <p className="mt-2 text-[15px] leading-[1.55] text-secondary">
+                      {w.body}
+                    </p>
                   </div>
-                  <p className="mt-2 text-[15px] leading-[1.55] text-secondary">
-                    {w.body}
-                  </p>
-                </div>
-              </Card>
+                </Card>
+              </ScrollReveal>
             ))}
           </div>
         </Container>
@@ -384,11 +398,32 @@ export default async function HomePage() {
   );
 }
 
-function HeroStat({ value, label }: { value: string; label: string }) {
+function HeroStatFixed({ value, label }: { value: string; label: string }) {
   return (
     <div>
       <div className="text-[24px] font-semibold tracking-[-0.01em] text-primary tabular-nums md:text-[28px]">
         {value}
+      </div>
+      <div className="mt-1 text-[12px] font-medium uppercase tracking-[0.06em] text-muted">
+        {label}
+      </div>
+    </div>
+  );
+}
+
+function HeroStatCounter({
+  to,
+  suffix,
+  label,
+}: {
+  to: number;
+  suffix?: string;
+  label: string;
+}) {
+  return (
+    <div>
+      <div className="text-[24px] font-semibold tracking-[-0.01em] text-primary tabular-nums md:text-[28px]">
+        <Counter to={to} suffix={suffix} />
       </div>
       <div className="mt-1 text-[12px] font-medium uppercase tracking-[0.06em] text-muted">
         {label}

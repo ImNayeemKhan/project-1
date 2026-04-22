@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { Inter, Hind_Siliguri } from 'next/font/google';
 import './globals.css';
 import { BRAND } from '@/lib/brand';
+import { ToastProvider } from '@/components/ui/Toast';
+import { RouteProgress } from '@/components/ui/RouteProgress';
 
 // Variable Inter — our primary face. Tabular numerals are enabled in
 // globals.css so prices and counters never shift when updating.
@@ -40,7 +42,12 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`${inter.variable} ${hind.variable}`} suppressHydrationWarning>
-      <body className="bg-canvas text-primary antialiased">{children}</body>
+      <body className="bg-canvas text-primary antialiased">
+        <ToastProvider>
+          <RouteProgress />
+          {children}
+        </ToastProvider>
+      </body>
     </html>
   );
 }

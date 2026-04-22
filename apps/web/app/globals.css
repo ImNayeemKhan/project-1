@@ -276,6 +276,40 @@ input, textarea, select, button { color: inherit; }
   pointer-events: none;
 }
 
+/* Shimmering skeleton loader — used by <Skeleton /> to signal pending data. */
+@keyframes kf-skeleton {
+  0%   { background-position: -200% 0; }
+  100% { background-position: 200% 0;  }
+}
+.anim-skeleton {
+  background-image: linear-gradient(
+    110deg,
+    var(--color-surface-muted) 20%,
+    rgba(148, 163, 184, 0.22) 50%,
+    var(--color-surface-muted) 80%
+  );
+  background-size: 200% 100%;
+  animation: kf-skeleton 1.4s linear infinite;
+}
+
+/* Input shake — emitted on sign-in / form failure to signal the field is
+   rejecting the submission without a disruptive modal. */
+@keyframes kf-shake {
+  10%, 90% { transform: translateX(-1px); }
+  20%, 80% { transform: translateX(2px); }
+  30%, 50%, 70% { transform: translateX(-4px); }
+  40%, 60% { transform: translateX(4px); }
+}
+.anim-shake { animation: kf-shake 0.42s cubic-bezier(0.36, 0.07, 0.19, 0.97) both; }
+
+/* Soft breathing glow around the hero logo so it feels alive without
+   dominating the composition. */
+@keyframes kf-breathe {
+  0%, 100% { transform: scale(1);    filter: drop-shadow(0 10px 30px rgba(37, 99, 235, 0.15)); }
+  50%      { transform: scale(1.015); filter: drop-shadow(0 16px 44px rgba(37, 99, 235, 0.28)); }
+}
+.anim-breathe { animation: kf-breathe 6s ease-in-out infinite; }
+
 /* Reduced motion honors user preference. */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {

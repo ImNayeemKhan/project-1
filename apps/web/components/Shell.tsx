@@ -75,10 +75,14 @@ export function Shell({
 
   return (
     <div className="flex min-h-screen">
-      <aside className="flex w-60 flex-col border-r border-slate-200 bg-white">
-        <Link href="/" className="flex items-center gap-2 border-b border-slate-100 px-5 py-4">
+      <aside className="flex w-64 flex-col border-r border-slate-200 bg-white">
+        <Link
+          href="/"
+          className="flex items-center justify-center border-b border-slate-100 px-4 py-5 transition-opacity hover:opacity-90"
+          aria-label={BRAND.name}
+        >
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={BRAND.logoUrl} alt={`${BRAND.name} logo`} className="h-8 w-auto" />
+          <img src={BRAND.logoUrl} alt={`${BRAND.name} logo`} className="h-16 w-auto" />
           <span className="sr-only">{BRAND.name}</span>
         </Link>
         <nav className="flex-1 space-y-1 px-2 py-2">
@@ -88,10 +92,18 @@ export function Shell({
               <Link
                 key={item.href}
                 href={item.href}
-                className={`block rounded-md px-3 py-2 text-sm ${
-                  active ? 'bg-brand-50 text-brand-700 font-medium' : 'text-slate-600 hover:bg-slate-50'
+                className={`group relative block rounded-md px-3 py-2 text-sm transition-all duration-150 ${
+                  active
+                    ? 'bg-brand-50 text-brand-700 font-medium'
+                    : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900 hover:translate-x-0.5'
                 }`}
               >
+                <span
+                  aria-hidden
+                  className={`absolute left-0 top-1/2 h-5 w-0.5 -translate-y-1/2 rounded-r-full bg-brand-600 transition-all duration-200 ${
+                    active ? 'opacity-100' : 'opacity-0 group-hover:opacity-60'
+                  }`}
+                />
                 {item.label}
               </Link>
             );
@@ -100,8 +112,12 @@ export function Shell({
         <div className="border-t border-slate-200 px-5 py-4 text-xs text-slate-500">
           <div className="font-medium text-slate-700">{user.name}</div>
           <div className="truncate">{user.email}</div>
-          <button onClick={logout} className="mt-2 text-brand-600 hover:underline">
-            Sign out
+          <button
+            onClick={logout}
+            className="mt-2 inline-flex items-center gap-1 rounded-md text-brand-600 transition-colors hover:text-brand-700"
+          >
+            <span className="underline-offset-2 hover:underline">Sign out</span>
+            <span aria-hidden className="transition-transform duration-200 group-hover:translate-x-0.5">↩</span>
           </button>
         </div>
       </aside>
